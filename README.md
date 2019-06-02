@@ -1,10 +1,12 @@
 Proposed level of achievement: Apollo 11
 
-Motivation
+![Visual reference](https://github.com/Mudaafi/findus/blob/master/Picture2.png)
+
+Motivation:
 More often than not, it may be difficult to navigate indoors especially with GPS as it only shows a dot on a map. It may also be inconvenient to ask for directions in a building as there may not be people who are available every time you need help. Furthermore, it may be an ugly sight to be seen panicking while trying to find your way to your intended destination especially when turning up for the first job interview or to secure a deal as it might leave a negative impression on your potential employers or partners. 
 Wouldn't it help if there was some sort of reference to indicate your current location and intended destination? That is exactly why we chose to embark on this project. We aim to locate the users' position using WiFi localisation technology and clearly indicate it on our android application alongside the users' intended destination.
 
-Aim
+Aim:
 We hope to be able to accurately locate the user using WiFi localisation techniques and display the starting and ending locations of the user in our android application.
 
 User stories:
@@ -46,6 +48,10 @@ o	Our application takes in the floor plan and generates the user location after 
 o	This application makes use of GPS technology and detailed floor plans to carry out indoor localisation
 o	Our application makes use of WiFi technology and detailed floor plans to carry out indoor localisation
  
+Program flow
+
+![Program flow](https://github.com/Mudaafi/findus/blob/master/flowchart.PNG)
+
 Project Summary
 All in all, we aim to be able to cater to a general group of audience who needs to have a tool to navigate through a building. Our application will be created to have a user friendly and intuitive interface to allow people who may not be very technological savvy to be able to understand the application's usage and flow. The main backbone of our application would be a map feed with the building of interest, followed by two points on the map feed; namely the starting and ending locations. 
 
