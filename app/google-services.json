@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "297694591822",
+    "firebase_url": "https://findus-53281.firebaseio.com",
+    "project_id": "findus-53281",
+    "storage_bucket": "findus-53281.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:297694591822:android:f2a239cad91eb876",
+        "android_client_info": {
+          "package_name": "com.example.findus"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "297694591822-v2tom7j6o7pfm1m21lqa4v0k37lr58tm.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE8-UzbTbtyeiBChJg5PMQJZ5o0F53dRQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "297694591822-v2tom7j6o7pfm1m21lqa4v0k37lr58tm.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

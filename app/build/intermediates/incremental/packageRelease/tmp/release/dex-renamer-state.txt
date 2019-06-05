@@ -1,4 +1,0 @@
-#Sun Jun 02 16:41:10 SGT 2019
-base.0=C\:\\Users\\Jasper Ong\\Desktop\\findus\\RSSIFinderJava\\app\\build\\intermediates\\dex\\release\\mergeDexRelease\\out
-path.0=classes.dex
-renamed.0=classes.dex
