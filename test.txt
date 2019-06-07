@@ -1,1 +1,2 @@
 Testing Git Part 1 ~Ahmad
+wtf instant push ~Ahmad
