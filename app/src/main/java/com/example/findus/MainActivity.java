@@ -1,5 +1,6 @@
 package com.example.findus;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
@@ -15,12 +16,18 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
@@ -28,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     List<ScanResult> wifiList;
     StringBuilder test = new StringBuilder(); // Holder to hold the strings to display
     TextView resultsDisplay; // Declaring the display
-
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

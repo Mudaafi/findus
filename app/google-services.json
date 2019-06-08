@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "297694591822-uvlm56kbd6tomognehdl288n8jqpkmve.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.findus",
+            "certificate_hash": "ee5a77833a896aed1bb3be9421281979bbe90938"
+          }
+        },
+        {
           "client_id": "297694591822-v2tom7j6o7pfm1m21lqa4v0k37lr58tm.apps.googleusercontent.com",
           "client_type": 3
         }
