@@ -22,15 +22,19 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
+    private static final String PATHX = "Access Points";
     WifiManager wifiManager;
     List<ScanResult> wifiList;
     StringBuilder test = new StringBuilder(); // Holder to hold the strings to display
@@ -87,20 +91,45 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Scanning function
+    //Calibrating function
     public void getAndShowScanResults() {
+        //Firestore Test
+        //The structure will be: A Collection of APs each containing a map of keys: Location,
+        // values: RSSI
+
+
         wifiManager.startScan(); //Deprecated, not required?
         wifiList = wifiManager.getScanResults();
         test = new StringBuilder();
 
         for (ScanResult scanResult : wifiList) {
-            test.append("The RSSI of " + scanResult.SSID + " is " + String.valueOf(scanResult.level) + "\n");
+            test.append("The RSSI of " + scanResult.SSID + " is " +
+                    String.valueOf(scanResult.level) + "\n");
+            Map<String,Object> accessPointDescription = new HashMap<>();
+            accessPointDescription.put("BSSID",scanResult.BSSID);
+            accessPointDescription.put("SSID", scanResult.SSID);
+            String locationPath = "AnchorRefs." + "INSERT_LOCATION_HERE";
+            // Creates Document if non-existent
+            db.collection(PATHX).document(scanResult.BSSID)
+                    .set(accessPointDescription, SetOptions.merge());
+            // Adds the RSSI value of the Access Point at that LOCATION using the Location as the Key
+            db.collection(PATHX).document(scanResult.BSSID)
+                    .update(
+                            locationPath, scanResult.level
+                    ).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d("LOGGED: ", "Success");
+                    } else {
+                        Log.w("LOGGED: ", "Failed.", task.getException());
+                    }
+                }
+            });
         }
         resultsDisplay.setText(test);
-
         TextView sizex = findViewById(R.id.sizex);
         sizex.setText("Number of Access Point(s): " +  String.valueOf(wifiList.size()));
-
     }
 
     //Test Segment 02
