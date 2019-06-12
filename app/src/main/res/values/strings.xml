@@ -3,4 +3,5 @@
     <string name="rescanButton">Rescan</string>
     <string name="defaultResults">PRESS SCAN!</string>
     <string name="textview">Default</string>
+    <string name="test">TEST</string>
 </resources>

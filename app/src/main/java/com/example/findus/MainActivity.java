@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -27,9 +28,11 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.SetOptions;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,6 +43,8 @@ public class MainActivity extends AppCompatActivity {
     StringBuilder test = new StringBuilder(); // Holder to hold the strings to display
     TextView resultsDisplay; // Declaring the display
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    String testString = "";
+    Map<String, Map<String, Long>> locationList = new HashMap<String, Map<String, Long>>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
         Button rescanButton = findViewById(R.id.rescanButton);
         rescanButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
+                Map<String, Long> localBssidMap = new HashMap<String, Long>();
                 if (!wifiManager.isWifiEnabled()) {
                     Toast.makeText(MainActivity.this, "Please Enable WiFi", Toast.LENGTH_SHORT).show();
                 } else if (!isLocationEnabled()) {
@@ -61,11 +67,129 @@ public class MainActivity extends AppCompatActivity {
                             PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
                     // OnPermissionResults will wait to launch getAndScanResults
                 } else {
-                    getAndShowScanResults();
+                    localBssidMap = getAndShowScanResults();
                 }
             }
         });
+
+        Button testButton = findViewById(R.id.testButton);
+
+        testButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                /* Testing Function "queryFirestore"
+                String testAP = "02:00:00:00:01:00";
+                Map<String,Long> testMap = new HashMap<String, Long>();
+                testMap.put(testAP, -50);
+                testMap.put("testthis2", 9);
+                testMap.put("testthis3", 9);
+                queryFirestore(testMap);
+                */
+                localizationAlgorithm();
+            }
+        });
     }
+
+    // Localization Algorithm
+    public void localizationAlgorithm() {
+        int location; // TO-DO
+        // Get a map of BSSID -> RSSI of Current Location
+        Map<String, Long> localBssidMap = getAndShowScanResults();
+
+        // Pulling from Firestore an Array of classes containing possible locations and the BSSID Hashmaps
+        Map<String, Map<String, Long>> locationArray = queryFirestore(localBssidMap);
+
+        // Start of Copypasta
+        double d = 0;
+        double minimum = 999999;
+        /*int*/ String finalLocation = "123";
+        String finalBssid = "";
+        String testBssid = "";
+
+        for(String currentLocation : locationArray.keySet()) {
+            d = 0;
+            for (String currentBssid : locationArray.get(currentLocation).keySet()) {
+                d += ((localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)) * (localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)));
+                testBssid = currentBssid;
+            }
+            d = Math.sqrt(d);
+            if (d < minimum) {
+                minimum = d;
+                finalLocation = currentLocation;
+                finalBssid = testBssid;
+            }
+        }
+        // End of Copypasta
+
+        StringBuilder holder = new StringBuilder();
+        holder.append("Minimum Value: ");
+        holder.append(minimum);
+        holder.append(System.getProperty("line.separator"));
+        holder.append("Final Location: ");
+        holder.append(finalLocation);
+        holder.append(System.getProperty("line.separator"));
+        holder.append("Final BSSID: ");
+        holder.append(finalBssid);
+        resultsDisplay.setText(holder);
+    }
+
+    // Querying Function
+    public Map<String, Map<String, Long>> queryFirestore(Map<String, Long> localBssidMap) {
+        locationList = new HashMap<String, Map<String, Long>>();
+        for(final String currentBssid : localBssidMap.keySet()) {
+            /* onCompleteListener Method
+            db.collection(PATHX).document(currentBssid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) { // exception handler
+                            Map<String, Long> bssidMap = new HashMap<String, Long>();
+                            Map<String, Long> firestoreMap = ((HashMap<String, Long>) document.getData().get("AnchorRefs"));
+                            for (String currentLocation : firestoreMap.keySet()) {
+                                if (locationList.get(currentLocation) == null) {
+                                    // If 2 Async Calls use this if-clause, overwriting errors will occur
+                                    bssidMap = new HashMap<String, Long>();
+                                    bssidMap.put(currentBssid, firestoreMap.get(currentLocation));
+                                    locationList.put(currentLocation, bssidMap);
+                                    Log.d("LOGGED: ", "No map found at " + currentLocation + " inserting new map, " + bssidMap.toString());
+                                    Log.d("Logged: ", "LocationList now: " + locationList.toString());
+                                } else {
+                                    Log.d("LOGGED: ", "Map found: " + bssidMap.toString());
+                                    locationList.get(currentLocation).put(currentBssid, firestoreMap.get(currentLocation));
+                                    Log.d("LOGGED: ", "Updated Map: " + bssidMap.toString());
+                                }
+                            }
+                        }
+                    }
+                    resultsDisplay.setText(locationList.toString()); // Live Async update
+                }
+            }); */
+            // Alternative solution uses a while-loop. May incur a lot of client-end load.
+            // no OnCompleteListener as it is DANGEROUS, CODE WILL CONTINUE DUE TO ASYNCHRONOUS CALLS
+            Task<DocumentSnapshot> task = db.collection(PATHX).document(currentBssid).get();
+            while (!task.isComplete()) {} // Work around
+            DocumentSnapshot document  =  task.getResult();
+            if (document.exists()) { // exception handler
+                Map<String, Long> bssidMap = new HashMap<String, Long>();
+                Map<String, Long> firestoreMap = ((HashMap<String, Long>) document.getData().get("AnchorRefs"));
+                for (String currentLocation : firestoreMap.keySet()) {
+                    if (locationList.get(currentLocation) == null) {
+                        bssidMap = new HashMap<String, Long>();
+                        bssidMap.put(currentBssid, firestoreMap.get(currentLocation));
+                        locationList.put(currentLocation, bssidMap);
+                        Log.d("LOGGED: ", "No map found at " + currentLocation + " inserting new map, " + bssidMap.toString());
+                        Log.d("Logged: ", "LocationList now: " + locationList.toString());
+                    } else {
+                        Log.d("LOGGED: ", "Map found: " + bssidMap.toString());
+                        locationList.get(currentLocation).put(currentBssid, firestoreMap.get(currentLocation));
+                        Log.d("LOGGED: ", "Updated Map: " + bssidMap.toString());
+                    }
+                }
+            }
+        }
+        return locationList;
+    }
+
 
     public boolean isLocationEnabled() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -85,29 +209,35 @@ public class MainActivity extends AppCompatActivity {
     //Continue following checking permissions
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
+        Map<String, Long> localBssidMap = new HashMap<String, Long>();
         if (requestCode == PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) { // Permission for Location Services
-            getAndShowScanResults();
+            localBssidMap = getAndShowScanResults();
         }
     }
 
     //Calibrating function
-    public void getAndShowScanResults() {
-        //Firestore Test
-        //The structure will be: A Collection of APs each containing a map of keys: Location,
-        // values: RSSI
-
-
+    public Map<String, Long> getAndShowScanResults() {
         wifiManager.startScan(); //Deprecated, not required?
         wifiList = wifiManager.getScanResults();
         test = new StringBuilder();
+        Map<String, Long> localBssidMap = new HashMap<String, Long>();
 
         for (ScanResult scanResult : wifiList) {
+            // Storing BSSID and RSSI for return
+            localBssidMap.put(scanResult.BSSID, (long) scanResult.level);
+            // Printing SSID and RSSI for Client View
             test.append("The RSSI of " + scanResult.SSID + " is " +
                     String.valueOf(scanResult.level) + "\n");
+
+            //Firestore Test
+            //The structure will be: A Collection of APs each containing a map of keys: Location,
+            // values: RSSI
+
             Map<String,Object> accessPointDescription = new HashMap<>();
             accessPointDescription.put("BSSID",scanResult.BSSID);
             accessPointDescription.put("SSID", scanResult.SSID);
+            // For Firestore Document Map Access
             String locationPath = "AnchorRefs." + "INSERT_LOCATION_HERE";
             // Creates Document if non-existent
             db.collection(PATHX).document(scanResult.BSSID)
@@ -130,6 +260,7 @@ public class MainActivity extends AppCompatActivity {
         resultsDisplay.setText(test);
         TextView sizex = findViewById(R.id.sizex);
         sizex.setText("Number of Access Point(s): " +  String.valueOf(wifiList.size()));
+        return localBssidMap;
     }
 
     //Test Segment 02
