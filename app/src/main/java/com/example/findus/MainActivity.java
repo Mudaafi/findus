@@ -1,11 +1,13 @@
 package com.example.findus;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -17,9 +19,11 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +49,10 @@ public class MainActivity extends AppCompatActivity {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     String testString = "";
     Map<String, Map<String, Long>> locationList = new HashMap<String, Map<String, Long>>();
+    private static final String CASE_CALIBRATE = "Calibrator"; // Not Needed
+    private static final String CASE_LOCALIZER = "Localizer";
+    private String m_Text = "lel";
+    private String standardIncomplete = "INCOMPLETE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +75,13 @@ public class MainActivity extends AppCompatActivity {
                             PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
                     // OnPermissionResults will wait to launch getAndScanResults
                 } else {
-                    localBssidMap = getAndShowScanResults();
+                    getUserLocation(new UserStringCallback() { // Get User Input for Location Variable
+                        @Override
+                        public void onCallback(String location) {
+                            Log.d("LOGGED: ", "Jumped Async problem(?). Location Value now: " + m_Text);
+                            getAndShowScanResults(location);
+                        }
+                    });
                 }
             }
         });
@@ -93,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
     public void localizationAlgorithm() {
         int location; // TO-DO
         // Get a map of BSSID -> RSSI of Current Location
-        Map<String, Long> localBssidMap = getAndShowScanResults();
+        Map<String, Long> localBssidMap = getAndShowScanResults(CASE_LOCALIZER);
 
         // Pulling from Firestore an Array of classes containing possible locations and the BSSID Hashmaps
         Map<String, Map<String, Long>> locationArray = queryFirestore(localBssidMap);
@@ -167,7 +181,11 @@ public class MainActivity extends AppCompatActivity {
             // Alternative solution uses a while-loop. May incur a lot of client-end load.
             // no OnCompleteListener as it is DANGEROUS, CODE WILL CONTINUE DUE TO ASYNCHRONOUS CALLS
             Task<DocumentSnapshot> task = db.collection(PATHX).document(currentBssid).get();
-            while (!task.isComplete()) {} // Work around
+            while (!task.isComplete()) {
+                try {
+                    wait(1000);
+                } catch (Exception e) {}
+            } // Work around
             DocumentSnapshot document  =  task.getResult();
             if (document.exists()) { // exception handler
                 Map<String, Long> bssidMap = new HashMap<String, Long>();
@@ -190,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         return locationList;
     }
 
-
+    //This function returns a boolean indicating if Location Services is activated
     public boolean isLocationEnabled() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             //  API 28
@@ -206,63 +224,117 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //Continue following checking permissions
+    //This function executes every time the app checks for permissions
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
                                            int[] grantResults) {
         Map<String, Long> localBssidMap = new HashMap<String, Long>();
         if (requestCode == PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) { // Permission for Location Services
-            localBssidMap = getAndShowScanResults();
+            getUserLocation(new UserStringCallback() { // Get User Input for Location Variable
+                @Override
+                public void onCallback(String location) {
+                    Log.d("LOGGED: ", "Jumped Async problem(?). Location Value now: " + m_Text);
+                    getAndShowScanResults(location);
+                }
+            });
         }
     }
 
+    // This is a public interface used to bypass Asynchronous runnables,
+    // specifically for user-input string in Function: getUserLocation
+    public interface UserStringCallback {
+        void onCallback(String value);
+    }
+
+    // This function obtains a user-input string for location. This string is used in calibration
+    // to set up anchor points
+    public void getUserLocation(final UserStringCallback myCallback) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Please label this location.");
+
+        // Set up the input
+        final EditText input = new EditText(this);
+        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_CLASS_TEXT);
+        builder.setView(input);
+
+        // Set up the buttons
+        // NOTE: OnClickListener is an ASYNCHRONOUS CALL. VALUE MIGHT NOT BE READY FOR CODE EXECUTION
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                m_Text = input.getText().toString();
+                myCallback.onCallback(m_Text);
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                myCallback.onCallback("No Location Provided");
+            }
+        });
+        builder.show();
+    }
+
     //Calibrating function
-    public Map<String, Long> getAndShowScanResults() {
+    public Map<String, Long> getAndShowScanResults(String location) {
         wifiManager.startScan(); //Deprecated, not required?
         wifiList = wifiManager.getScanResults();
         test = new StringBuilder();
         Map<String, Long> localBssidMap = new HashMap<String, Long>();
 
-        for (ScanResult scanResult : wifiList) {
+        for (final ScanResult scanResult : wifiList) {
             // Storing BSSID and RSSI for return
             localBssidMap.put(scanResult.BSSID, (long) scanResult.level);
             // Printing SSID and RSSI for Client View
             test.append("The RSSI of " + scanResult.SSID + " is " +
                     String.valueOf(scanResult.level) + "\n");
 
-            //Firestore Test
-            //The structure will be: A Collection of APs each containing a map of keys: Location,
-            // values: RSSI
-
-            Map<String,Object> accessPointDescription = new HashMap<>();
-            accessPointDescription.put("BSSID",scanResult.BSSID);
-            accessPointDescription.put("SSID", scanResult.SSID);
-            // For Firestore Document Map Access
-            String locationPath = "AnchorRefs." + "INSERT_LOCATION_HERE";
-            // Creates Document if non-existent
-            db.collection(PATHX).document(scanResult.BSSID)
-                    .set(accessPointDescription, SetOptions.merge());
-            // Adds the RSSI value of the Access Point at that LOCATION using the Location as the Key
-            db.collection(PATHX).document(scanResult.BSSID)
-                    .update(
-                            locationPath, scanResult.level
-                    ).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        Log.d("LOGGED: ", "Success");
-                    } else {
-                        Log.w("LOGGED: ", "Failed.", task.getException());
-                    }
-                }
-            });
+            if (location != CASE_LOCALIZER) {// Checks case.
+                pushCalibration(location, scanResult);
+            }
         }
-        resultsDisplay.setText(test);
+        if (location != CASE_LOCALIZER) {resultsDisplay.setText(test);} // Display List of APs
         TextView sizex = findViewById(R.id.sizex);
         sizex.setText("Number of Access Point(s): " +  String.valueOf(wifiList.size()));
         return localBssidMap;
     }
 
+    public void pushCalibration(String location, ScanResult scanResult) {
+        //Firestore Test
+        //The structure will be: A Collection of APs each containing a map of keys: Location,
+        // values: RSSI
+        Map<String,Object> accessPointDescription = new HashMap<>();
+        accessPointDescription.put("BSSID",scanResult.BSSID);
+        accessPointDescription.put("SSID", scanResult.SSID);
+
+        // Creates Document if non-existent
+        db.collection(PATHX).document(scanResult.BSSID)
+                .set(accessPointDescription, SetOptions.merge());
+        // m_Text is obtained ASYNCHORNOUSLY. Might not be ready
+        // Update: Implemented public interface callback method to remedy Asynchronity
+        Log.d("LOGGED: ", "Checking m_Text value for possible Async race error: " + m_Text + " vs " + location);
+
+        // For Firestore Document MAP Access
+        String locationPath = "AnchorRefs." + location;
+        // Adds the RSSI value of the Access Point at that LOCATION using the Location as the Key
+        db.collection(PATHX).document(scanResult.BSSID)
+                .update(
+                        locationPath, scanResult.level
+                ).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.d("LOGGED: ", "Success");
+                } else {
+                    Log.w("LOGGED: ", "Failed.", task.getException());
+                }
+            }
+        });
+    }
+
+    /* TEST SEGMENTS, CAN REMOVE
     //Test Segment 02
     public void testWifiScanner(View view) { // Its a mess
         // Obtaining Permissions
@@ -290,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, filter);
 
-            /*
+
             BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -311,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             broadcastReceiver.onReceive();
-            */
+
             wifiManager.startScan();
 
             int rssix = wifiManager.getConnectionInfo().getRssi();
@@ -338,5 +410,5 @@ public class MainActivity extends AppCompatActivity {
         results += "\nSSID: " + String.valueOf(wifiInfo.getSSID());
         results += "\nHidden SSID: " + String.valueOf(wifiInfo.getHiddenSSID());
         resultsDisplay.setText(results);
-    }
+    }*/
 }
