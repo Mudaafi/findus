@@ -279,23 +279,33 @@ public class MainActivity extends AppCompatActivity {
 
     //Calibrating function
     public Map<String, Long> getAndShowScanResults(String location) {
-        wifiManager.startScan(); //Deprecated, not required?
-        wifiList = wifiManager.getScanResults();
         test = new StringBuilder();
         Map<String, Long> localBssidMap = new HashMap<String, Long>();
-
+        wifiManager.startScan(); //Deprecated, not required?
+        wifiList = wifiManager.getScanResults();
         for (final ScanResult scanResult : wifiList) {
             // Storing BSSID and RSSI for return
             localBssidMap.put(scanResult.BSSID, (long) scanResult.level);
             // Printing SSID and RSSI for Client View
             test.append("The RSSI of " + scanResult.SSID + " is " +
                     String.valueOf(scanResult.level) + "\n");
-
-            if (location != CASE_LOCALIZER) {// Checks case.
-                pushCalibration(location, scanResult);
+        }
+        for (int i = 0; i < 3; i++) {
+            wifiManager.startScan(); //Deprecated, not required?
+            wifiList = wifiManager.getScanResults();
+            for (final ScanResult scanResult : wifiList) {
+                // Storing BSSID and RSSI for return
+                long currentrssi = localBssidMap.get(scanResult.BSSID);
+                localBssidMap.put(scanResult.BSSID, (long) (scanResult.level + currentrssi));
             }
         }
-        if (location != CASE_LOCALIZER) {resultsDisplay.setText(test);} // Display List of APs
+        for (long value : localBssidMap.values()) {
+            value /= 4;
+        }
+        if (location != CASE_LOCALIZER) {
+            resultsDisplay.setText(test);
+            pushCalibration(location, scanResult);
+        } // Display List of APs
         TextView sizex = findViewById(R.id.sizex);
         sizex.setText("Number of Access Point(s): " +  String.valueOf(wifiList.size()));
         return localBssidMap;
