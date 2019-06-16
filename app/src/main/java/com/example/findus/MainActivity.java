@@ -281,67 +281,76 @@ public class MainActivity extends AppCompatActivity {
     public Map<String, Long> getAndShowScanResults(String location) {
         test = new StringBuilder();
         Map<String, Long> localBssidMap = new HashMap<String, Long>();
-        wifiManager.startScan(); //Deprecated, not required?
-        wifiList = wifiManager.getScanResults();
-        for (final ScanResult scanResult : wifiList) {
-            // Storing BSSID and RSSI for return
-            localBssidMap.put(scanResult.BSSID, (long) scanResult.level);
-            // Printing SSID and RSSI for Client View
-            test.append("The RSSI of " + scanResult.SSID + " is " +
-                    String.valueOf(scanResult.level) + "\n");
-        }
-        for (int i = 0; i < 3; i++) {
+        Map<String, Long> counterMap = new HashMap<String, Long>();
+
+
+        for (int i = 0; i < 4; i++) {
             wifiManager.startScan(); //Deprecated, not required?
             wifiList = wifiManager.getScanResults();
             for (final ScanResult scanResult : wifiList) {
                 // Storing BSSID and RSSI for return
-                long currentrssi = localBssidMap.get(scanResult.BSSID);
-                localBssidMap.put(scanResult.BSSID, (long) (scanResult.level + currentrssi));
+                if (counterMap.containsKey(scanResult.BSSID)) {
+                    counterMap.put(scanResult.BSSID, counterMap.get(scanResult.BSSID) + (long) 1);
+                    localBssidMap.put(scanResult.BSSID, (long) (scanResult.level + localBssidMap.get(scanResult.BSSID)));
+                } else {
+                    counterMap.put(scanResult.BSSID, (long) 1);
+                    localBssidMap.put(scanResult.BSSID, (long) scanResult.level);
+                }
             }
         }
-        for (long value : localBssidMap.values()) {
-            value /= 4;
+        for (String key : localBssidMap.keySet()) {
+            localBssidMap.put(key, localBssidMap.get(key)/counterMap.get(key));
+            // Printing SSID and RSSI for Client View
+            test.append("The RSSI of " + key + " is " +
+                    String.valueOf(localBssidMap.get(key)) + "\n");
         }
+
         if (location != CASE_LOCALIZER) {
             resultsDisplay.setText(test);
-            pushCalibration(location, scanResult);
+            pushCalibration(location, localBssidMap);
         } // Display List of APs
         TextView sizex = findViewById(R.id.sizex);
         sizex.setText("Number of Access Point(s): " +  String.valueOf(wifiList.size()));
         return localBssidMap;
     }
 
-    public void pushCalibration(String location, ScanResult scanResult) {
+    public void pushCalibration(String location, Map<String, Long> localBssidMap) {
         //Firestore Test
         //The structure will be: A Collection of APs each containing a map of keys: Location,
         // values: RSSI
-        Map<String,Object> accessPointDescription = new HashMap<>();
-        accessPointDescription.put("BSSID",scanResult.BSSID);
-        accessPointDescription.put("SSID", scanResult.SSID);
 
-        // Creates Document if non-existent
-        db.collection(PATHX).document(scanResult.BSSID)
-                .set(accessPointDescription, SetOptions.merge());
-        // m_Text is obtained ASYNCHORNOUSLY. Might not be ready
-        // Update: Implemented public interface callback method to remedy Asynchronity
-        Log.d("LOGGED: ", "Checking m_Text value for possible Async race error: " + m_Text + " vs " + location);
+        //Map<String,Object> accessPointDescription = new HashMap<>();
+        //accessPointDescription.put("BSSID",scanResult.BSSID);
+        //accessPointDescription.put("SSID", scanResult.SSID);
 
         // For Firestore Document MAP Access
         String locationPath = "AnchorRefs." + location;
-        // Adds the RSSI value of the Access Point at that LOCATION using the Location as the Key
-        db.collection(PATHX).document(scanResult.BSSID)
-                .update(
-                        locationPath, scanResult.level
-                ).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Log.d("LOGGED: ", "Success");
-                } else {
-                    Log.w("LOGGED: ", "Failed.", task.getException());
+        Map<String, Boolean> initialized = new HashMap<String, Boolean>();
+        initialized.put("Initialized", true);
+
+        for (String key : localBssidMap.keySet()) {
+            // Creates Document if non-existent
+            db.collection(PATHX).document(key)
+                    .set(initialized, SetOptions.merge());
+            // Adds the RSSI value of the Access Point at that LOCATION using the Location as the Key
+            db.collection(PATHX).document(key)
+                    .update(
+                            locationPath, localBssidMap.get(key)
+                    ).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d("LOGGED: ", "Success");
+                    } else {
+                        Log.w("LOGGED: ", "Failed.", task.getException());
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        // m_Text is obtained ASYNCHORNOUSLY. Might not be ready
+        // Update: Implemented public interface callback method to remedy Asynchronity
+        Log.d("LOGGED: ", "Checking m_Text value for possible Async race error: " + m_Text + " vs " + location);
     }
 
     /* TEST SEGMENTS, CAN REMOVE
