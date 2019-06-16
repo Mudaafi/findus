@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
         for(String currentLocation : locationArray.keySet()) {
             d = 0;
             for (String currentBssid : localBssidMap.keySet()) {
-                if (locationArray.containsKey(currentBssid)) {
+                if (locationArray.get(currentLocation).containsKey(currentBssid)) {
                     d += ((localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)) * (localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)));
                     testBssid = currentBssid;
                 }
