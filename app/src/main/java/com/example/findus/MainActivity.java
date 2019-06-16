@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Start of Copypasta
         double d = 0;
+        int counter = 0;
         double minimum = 999999;
         /*int*/ String finalLocation = "123";
         String finalBssid = "";
@@ -122,12 +123,15 @@ public class MainActivity extends AppCompatActivity {
 
         for(String currentLocation : locationArray.keySet()) {
             d = 0;
+            counter = 0;
             for (String currentBssid : localBssidMap.keySet()) {
                 if (locationArray.get(currentLocation).containsKey(currentBssid)) {
+                    counter += 1;
                     d += ((localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)) * (localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)));
                     testBssid = currentBssid;
                 }
             }
+            d /= counter;
             d = Math.sqrt(d);
             if (d < minimum) {
                 minimum = d;
