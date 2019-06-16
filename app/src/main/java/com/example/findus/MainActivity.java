@@ -41,7 +41,8 @@ import java.util.*;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
-    private static final String PATHX = "Access Points";
+    private static final String PATHX = "Testing";
+    private static final String ACTUAL_PATH = "Access Points";
     WifiManager wifiManager;
     List<ScanResult> wifiList;
     StringBuilder test = new StringBuilder(); // Holder to hold the strings to display
@@ -121,9 +122,11 @@ public class MainActivity extends AppCompatActivity {
 
         for(String currentLocation : locationArray.keySet()) {
             d = 0;
-            for (String currentBssid : locationArray.get(currentLocation).keySet()) {
-                d += ((localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)) * (localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)));
-                testBssid = currentBssid;
+            for (String currentBssid : localBssidMap.keySet()) {
+                if (locationArray.containsKey(currentBssid)) {
+                    d += ((localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)) * (localBssidMap.get(currentBssid) - locationArray.get(currentLocation).get(currentBssid)));
+                    testBssid = currentBssid;
+                }
             }
             d = Math.sqrt(d);
             if (d < minimum) {
@@ -180,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
             }); */
             // Alternative solution uses a while-loop. May incur a lot of client-end load.
             // no OnCompleteListener as it is DANGEROUS, CODE WILL CONTINUE DUE TO ASYNCHRONOUS CALLS
-            Task<DocumentSnapshot> task = db.collection(PATHX).document(currentBssid).get();
+            Task<DocumentSnapshot> task = db.collection(ACTUAL_PATH).document(currentBssid).get();
             while (!task.isComplete()) {
                 try {
                     wait(1000);
@@ -282,7 +285,11 @@ public class MainActivity extends AppCompatActivity {
         test = new StringBuilder();
         Map<String, Long> localBssidMap = new HashMap<String, Long>();
         Map<String, Long> counterMap = new HashMap<String, Long>();
-
+        Map<String, String> ssidMap = new HashMap<String, String>();
+        if (location == "No Location Provided") {
+            resultsDisplay.setText(location);
+            return localBssidMap;
+        }
 
         for (int i = 0; i < 4; i++) {
             wifiManager.startScan(); //Deprecated, not required?
@@ -295,31 +302,32 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     counterMap.put(scanResult.BSSID, (long) 1);
                     localBssidMap.put(scanResult.BSSID, (long) scanResult.level);
+                    ssidMap.put(scanResult.BSSID, scanResult.SSID);
                 }
             }
         }
         for (String key : localBssidMap.keySet()) {
             localBssidMap.put(key, localBssidMap.get(key)/counterMap.get(key));
             // Printing SSID and RSSI for Client View
-            test.append("The RSSI of " + key + " is " +
+            test.append("The RSSI of " + ssidMap.get(key) + " : " + key + " is " +
                     String.valueOf(localBssidMap.get(key)) + "\n");
         }
 
         if (location != CASE_LOCALIZER) {
             resultsDisplay.setText(test);
-            pushCalibration(location, localBssidMap);
+            pushCalibration(location, localBssidMap, ssidMap);
         } // Display List of APs
         TextView sizex = findViewById(R.id.sizex);
         sizex.setText("Number of Access Point(s): " +  String.valueOf(wifiList.size()));
         return localBssidMap;
     }
 
-    public void pushCalibration(String location, Map<String, Long> localBssidMap) {
+    public void pushCalibration(String location, Map<String, Long> localBssidMap,  Map<String, String> ssidMap) {
         //Firestore Test
         //The structure will be: A Collection of APs each containing a map of keys: Location,
         // values: RSSI
 
-        //Map<String,Object> accessPointDescription = new HashMap<>();
+        Map<String,Object> accessPointDescription = new HashMap<>();
         //accessPointDescription.put("BSSID",scanResult.BSSID);
         //accessPointDescription.put("SSID", scanResult.SSID);
 
@@ -329,6 +337,8 @@ public class MainActivity extends AppCompatActivity {
         initialized.put("Initialized", true);
 
         for (String key : localBssidMap.keySet()) {
+            accessPointDescription.put("BSSID",key);
+            accessPointDescription.put("SSID", ssidMap.get(key));
             // Creates Document if non-existent
             db.collection(PATHX).document(key)
                     .set(initialized, SetOptions.merge());
