@@ -38,11 +38,13 @@ import com.google.firebase.firestore.SetOptions;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION = 1;
     private static final String PATHX = "Testing";
-    private static final String ACTUAL_PATH = "Access Points";
+    private static final String ACTUAL_PATH = "Testing";
+    private static final String MAP_NAME_IN_FS_DOC = "AnchorRefs";
     WifiManager wifiManager;
     List<ScanResult> wifiList;
     StringBuilder test = new StringBuilder(); // Holder to hold the strings to display
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String CASE_LOCALIZER = "Localizer";
     private String m_Text = "lel";
     private String standardIncomplete = "INCOMPLETE";
+    private Integer asyncCounter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,21 +64,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         resultsDisplay = findViewById(R.id.resultsDisplay); // Declaring the display
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
+        }
 
         Button rescanButton = findViewById(R.id.rescanButton);
         rescanButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                Map<String, Long> localBssidMap = new HashMap<String, Long>();
-                if (!wifiManager.isWifiEnabled()) {
-                    Toast.makeText(MainActivity.this, "Please Enable WiFi", Toast.LENGTH_SHORT).show();
-                } else if (!isLocationEnabled()) {
-                    Toast.makeText(MainActivity.this, "Please Enable Location Services", Toast.LENGTH_SHORT).show();
-                    // API > 28 requires explicit permission for Location Services
-                } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                            PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
-                    // OnPermissionResults will wait to launch getAndScanResults
-                } else {
+                if (systemsCheck()) {
                     getUserLocation(new UserStringCallback() { // Get User Input for Location Variable
                         @Override
                         public void onCallback(String location) {
@@ -88,30 +86,51 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button testButton = findViewById(R.id.testButton);
-
         testButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                /* Testing Function "queryFirestore"
-                String testAP = "02:00:00:00:01:00";
-                Map<String,Long> testMap = new HashMap<String, Long>();
-                testMap.put(testAP, -50);
-                testMap.put("testthis2", 9);
-                testMap.put("testthis3", 9);
-                queryFirestore(testMap);
-                */
-                localizationAlgorithm();
+                if (systemsCheck()) {
+                    queryFirestore();
+                }
             }
         });
     }
 
-    // Localization Algorithm
-    public void localizationAlgorithm() {
-        int location; // TO-DO
-        // Get a map of BSSID -> RSSI of Current Location
-        Map<String, Long> localBssidMap = getAndShowScanResults(CASE_LOCALIZER);
+    //Checks if device has WiFi and Location Services enabled.
+    public boolean systemsCheck() {
+        if (!wifiManager.isWifiEnabled()) {
+            Toast.makeText(MainActivity.this, "Please Enable WiFi", Toast.LENGTH_SHORT).show();
+        } else if (!isLocationEnabled()) {
+            Toast.makeText(MainActivity.this, "Please Enable Location Services", Toast.LENGTH_SHORT).show();
+            // API > 28 requires explicit permission for Location Services
+        } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION);
+            Toast.makeText(MainActivity.this, "User Permission obtained. Please try again.", Toast.LENGTH_SHORT).show();
+        } else {
+            return true;
+        }
+        return false; // Failed a criteria above
+    }
 
-        // Pulling from Firestore an Array of classes containing possible locations and the BSSID Hashmaps
-        Map<String, Map<String, Long>> locationArray = queryFirestore(localBssidMap);
+    //This function returns a boolean indicating if Location Services is activated
+    public boolean isLocationEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            //  API 28
+            LocationManager lm = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            return lm.isLocationEnabled();
+
+        } else {
+            // This is Deprecated in API 28
+            int mode = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE,
+                    Settings.Secure.LOCATION_MODE_OFF);
+            return  (mode != Settings.Secure.LOCATION_MODE_OFF);
+
+        }
+    }
+
+    // Localization Algorithm
+    public void localizationAlgorithm(Map<String, Map<String, Long>> locationArray, Map<String, Long> localBssidMap) {
 
         // Start of Copypasta
         double d = 0;
@@ -151,21 +170,28 @@ public class MainActivity extends AppCompatActivity {
         holder.append("Final BSSID: ");
         holder.append(finalBssid);
         resultsDisplay.setText(holder);
+        Log.d("Logged: ", "Test Complete");
     }
 
     // Querying Function
-    public Map<String, Map<String, Long>> queryFirestore(Map<String, Long> localBssidMap) {
-        locationList = new HashMap<String, Map<String, Long>>();
-        for(final String currentBssid : localBssidMap.keySet()) {
-            /* onCompleteListener Method
-            db.collection(PATHX).document(currentBssid).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    public void queryFirestore() {
+        locationList = new HashMap<String, Map<String, Long>>(); // resetting holder 'locationList'
+        asyncCounter = 0; // resetting holder 'doneSignal'
+
+        // Get a map of BSSID -> RSSI of Current Location
+        final Map<String, Long> localBssidMap = getAndShowScanResults(CASE_LOCALIZER);
+        // Pulling from Firestore an Array of classes containing possible locations and the BSSID Hashmaps
+        for (final String currentBssid : localBssidMap.keySet()) {
+            ++asyncCounter;
+            // Asynchronous Tasks
+            db.collection(PATHX).document(currentBssid).get().addOnCompleteListener(this, new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) { // exception handler
                             Map<String, Long> bssidMap = new HashMap<String, Long>();
-                            Map<String, Long> firestoreMap = ((HashMap<String, Long>) document.getData().get("AnchorRefs"));
+                            Map<String, Long> firestoreMap = ((HashMap<String, Long>) document.getData().get(MAP_NAME_IN_FS_DOC ));
                             for (String currentLocation : firestoreMap.keySet()) {
                                 if (locationList.get(currentLocation) == null) {
                                     // If 2 Async Calls use this if-clause, overwriting errors will occur
@@ -182,66 +208,10 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     }
-                    resultsDisplay.setText(locationList.toString()); // Live Async update
-                }
-            }); */
-            // Alternative solution uses a while-loop. May incur a lot of client-end load.
-            // no OnCompleteListener as it is DANGEROUS, CODE WILL CONTINUE DUE TO ASYNCHRONOUS CALLS
-            Task<DocumentSnapshot> task = db.collection(ACTUAL_PATH).document(currentBssid).get();
-            while (!task.isComplete()) {
-                try {
-                    wait(1000);
-                } catch (Exception e) {}
-            } // Work around
-            DocumentSnapshot document  =  task.getResult();
-            if (document.exists()) { // exception handler
-                Map<String, Long> bssidMap = new HashMap<String, Long>();
-                Map<String, Long> firestoreMap = ((HashMap<String, Long>) document.getData().get("AnchorRefs"));
-                for (String currentLocation : firestoreMap.keySet()) {
-                    if (locationList.get(currentLocation) == null) {
-                        bssidMap = new HashMap<String, Long>();
-                        bssidMap.put(currentBssid, firestoreMap.get(currentLocation));
-                        locationList.put(currentLocation, bssidMap);
-                        Log.d("LOGGED: ", "No map found at " + currentLocation + " inserting new map, " + bssidMap.toString());
-                        Log.d("Logged: ", "LocationList now: " + locationList.toString());
-                    } else {
-                        Log.d("LOGGED: ", "Map found: " + bssidMap.toString());
-                        locationList.get(currentLocation).put(currentBssid, firestoreMap.get(currentLocation));
-                        Log.d("LOGGED: ", "Updated Map: " + bssidMap.toString());
+                    --asyncCounter;
+                    if (asyncCounter == 0) { //If this is  the last async task left
+                        localizationAlgorithm(locationList, localBssidMap);
                     }
-                }
-            }
-        }
-        return locationList;
-    }
-
-    //This function returns a boolean indicating if Location Services is activated
-    public boolean isLocationEnabled() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            //  API 28
-            LocationManager lm = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
-            return lm.isLocationEnabled();
-
-        } else {
-            // This is Deprecated in API 28
-            int mode = Settings.Secure.getInt(getApplicationContext().getContentResolver(), Settings.Secure.LOCATION_MODE,
-                    Settings.Secure.LOCATION_MODE_OFF);
-            return  (mode != Settings.Secure.LOCATION_MODE_OFF);
-
-        }
-    }
-
-    //This function executes every time the app checks for permissions
-    public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                           int[] grantResults) {
-        Map<String, Long> localBssidMap = new HashMap<String, Long>();
-        if (requestCode == PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION
-                && grantResults[0] == PackageManager.PERMISSION_GRANTED) { // Permission for Location Services
-            getUserLocation(new UserStringCallback() { // Get User Input for Location Variable
-                @Override
-                public void onCallback(String location) {
-                    Log.d("LOGGED: ", "Jumped Async problem(?). Location Value now: " + m_Text);
-                    getAndShowScanResults(location);
                 }
             });
         }
@@ -336,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         //accessPointDescription.put("SSID", scanResult.SSID);
 
         // For Firestore Document MAP Access
-        String locationPath = "AnchorRefs." + location;
+        String locationPath = MAP_NAME_IN_FS_DOC +"." + location;
         Map<String, Boolean> initialized = new HashMap<String, Boolean>();
         initialized.put("Initialized", true);
 
@@ -366,8 +336,24 @@ public class MainActivity extends AppCompatActivity {
         // Update: Implemented public interface callback method to remedy Asynchronity
         Log.d("LOGGED: ", "Checking m_Text value for possible Async race error: " + m_Text + " vs " + location);
     }
-
+// CODE REPOSITORY ----------------------------------------
     /* TEST SEGMENTS, CAN REMOVE
+
+    //This function executes every time the app checks for permissions
+    public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                                           int[] grantResults) {
+        Map<String, Long> localBssidMap = new HashMap<String, Long>();
+        if (requestCode == PERMISSIONS_REQUEST_CODE_ACCESS_COARSE_LOCATION
+                && grantResults[0] == PackageManager.PERMISSION_GRANTED) { // Permission for Location Services
+            getUserLocation(new UserStringCallback() { // Get User Input for Location Variable
+                @Override
+                public void onCallback(String location) {
+                    Log.d("LOGGED: ", "Jumped Async problem(?). Location Value now: " + m_Text);
+                    getAndShowScanResults(location);
+                }
+            });
+        }
+    }
     //Test Segment 02
     public void testWifiScanner(View view) { // Its a mess
         // Obtaining Permissions
