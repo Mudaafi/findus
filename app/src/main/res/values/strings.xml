@@ -1,7 +1,13 @@
 <resources>
-    <string name="app_name">RSSI Finder</string>
-    <string name="rescanButton">Rescan</string>
+    <string name="app_name">Team Findus</string>
+    <string name="rescanButton">SCAN</string>
     <string name="defaultResults">PRESS SCAN!</string>
     <string name="textview">Default</string>
-    <string name="test">TEST</string>
+    <string name="test">LOCATE</string>
+    <string name="nav_header_subtitle">Application drawer</string>
+    <string name="nav_header_title">Team Findus</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="menu_home">Map</string>
 </resources>
