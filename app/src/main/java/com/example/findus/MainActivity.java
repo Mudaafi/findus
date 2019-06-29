@@ -150,25 +150,27 @@ public class MainActivity extends AppCompatActivity {
                     testBssid = currentBssid;
                 }
             }
-            d /= counter;
-            d = Math.sqrt(d);
-            if (d < minimum) {
-                minimum = d;
-                finalLocation = currentLocation;
-                finalBssid = testBssid;
+            if (counter != 0) {
+                d /= counter;
+                d = Math.sqrt(d);
+                if (d < minimum) {
+                    minimum = d;
+                    finalLocation = currentLocation;
+                    finalBssid = testBssid;
+                }
             }
         }
         // End of Copypasta
 
         StringBuilder holder = new StringBuilder();
-        holder.append("Minimum Value: ");
-        holder.append(minimum);
-        holder.append(System.getProperty("line.separator"));
-        holder.append("Final Location: ");
+        //holder.append("Minimum Value: ");
+        //holder.append(minimum);
+        //holder.append(System.getProperty("line.separator"));
+        holder.append("You are currently at: ");
         holder.append(finalLocation);
         holder.append(System.getProperty("line.separator"));
-        holder.append("Final BSSID: ");
-        holder.append(finalBssid);
+        //holder.append("Final BSSID: ");
+        //holder.append(finalBssid);
         resultsDisplay.setText(holder);
         Log.d("Logged: ", "Test Complete");
     }
