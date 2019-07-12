@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#008577</color>
+    <color name="newColorPrimaryDark">#25378A</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="logoBlue">#35a8eb</color>
+    <color name="logoOrange">#ff9900</color>
+    <color name="white">#ffffff</color>
+    <color name="capsule_button_default">#CFCFCF</color>
+    <color name="black">#000</color>
 </resources>

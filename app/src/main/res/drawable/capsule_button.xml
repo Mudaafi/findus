@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <corners android:radius="1000dp"/>
+            <solid android:color="@color/logoOrange"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape>
+            <corners android:radius="1000dp"/>
+            <solid android:color="@color/capsule_button_default"/>
+        </shape>
+    </item>
+
+</selector>

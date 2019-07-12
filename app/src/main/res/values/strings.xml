@@ -10,4 +10,15 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="menu_home">Map</string>
+    <string name="menu_calibration">Calibration</string>
+    <string name="register_button_text">Register</string>
+    <string name="redefine_button_text">Redefine</string>
+    <string name="tester">FINDUS</string>
+    <string name="self_credit">An Orbital project by \nJasper and Ahmad</string>
+
+    <string name="area_map_text">Area Map  :</string>
+    <string name="location_text">Location  :</string>
+    <string name="store_text">Store  :</string>
+    <string name="default_area_map_input">COM 1 Level 2, NUS</string>
+    <string name="default_store">Testing</string>
 </resources>

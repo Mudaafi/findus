@@ -131,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Localization Algorithm
     public void localizationAlgorithm(Map<String, Map<String, Long>> locationArray, Map<String, Long> localBssidMap) {
-
         // Start of Copypasta
         double d = 0;
         int counter = 0;
