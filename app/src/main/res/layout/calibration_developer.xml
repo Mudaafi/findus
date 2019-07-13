@@ -61,10 +61,11 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <AutoCompleteTextView
+    <EditText
         android:id="@+id/inputAreaMap"
         android:text="@string/default_area_map_input"
-        android:inputType="textAutoComplete"
+        android:inputType="none"
+        android:enabled="false"
 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -85,23 +86,24 @@
         app:layout_constraintEnd_toEndOf="@+id/inputAreaMap"
         app:layout_constraintTop_toBottomOf="@+id/inputAreaMap" />
 
-    <EditText
-        android:id="@+id/inputCoord"
+    <AutoCompleteTextView
+        android:id="@+id/inputStore"
         android:text=""
+        android:autofillHints="@string/default_store"
         android:inputType="none"
-        android:clickable="false"
-        android:editable="false"
 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:ems="10"
+
+
         app:layout_constraintEnd_toEndOf="@+id/inputLocation"
         app:layout_constraintTop_toBottomOf="@+id/inputLocation" />
 
     <TextView
         android:id="@+id/labelAreaMap"
-        android:layout_width="110sp"
+        android:layout_width="100sp"
         android:gravity="end"
         android:text="@string/area_map_text"
         android:textColor="@color/black"
@@ -117,7 +119,7 @@
 
     <TextView
         android:id="@+id/labelLocation"
-        android:layout_width="110sp"
+        android:layout_width="100sp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:gravity="end"
@@ -131,17 +133,17 @@
         app:layout_constraintTop_toTopOf="@+id/inputLocation" />
 
     <TextView
-        android:id="@+id/labelCoord"
-        android:text="@string/coord_text"
+        android:id="@+id/labelStore"
+        android:text="@string/store_text"
         android:gravity="end"
-        android:layout_width="110sp"
+        android:layout_width="100sp"
         android:textColor="@color/black"
         android:textSize="18sp"
 
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="@+id/inputCoord"
+        app:layout_constraintBottom_toBottomOf="@+id/inputStore"
         app:layout_constraintEnd_toEndOf="@+id/labelLocation"
         app:layout_constraintStart_toStartOf="@+id/calibration_map"
-        app:layout_constraintTop_toTopOf="@+id/inputCoord" />
+        app:layout_constraintTop_toTopOf="@+id/inputStore" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

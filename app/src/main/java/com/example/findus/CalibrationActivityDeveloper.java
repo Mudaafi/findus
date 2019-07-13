@@ -32,22 +32,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class CalibrationActivity extends MainNavigationDrawer {
+public class CalibrationActivityDeveloper extends MainNavigationDrawer {
     // -- View Variables
     ModifiedImageView mapView; // Map
     boolean keyboardOpen = false; // To hide and show keyboard // For revealing overlapping dropdown menu
     boolean dropdownStoreOpen = false; // To hide and show storeInput dropdown(For UI purposes)
     private final static String CALIBRATION_PIN_NAME = "Calibration Pin"; // For naming the pin to be stored together with location
     private String currentLocation;
-    private Map<String, Object> registeredAreaMaps = new HashMap<String, Object>();
 
     // -- OnCreate (i.e. main)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.calibration_main);
-
-        refreshMapList();
+        setContentView(R.layout.calibration_developer);
+        // pulls the name of all collections from Firestore
+        refreshStoreList();
+        Log.d("LOGGED", selectedStore);
 
         // -- Map Codes
         mapView = (ModifiedImageView) findViewById(R.id.calibration_map);
@@ -72,8 +72,6 @@ public class CalibrationActivity extends MainNavigationDrawer {
                         if (isTap(event)){
                             // start_x and start_y are class variables declared in CoreFunctions
                             final PointF source_coord = mapView.viewToSourceCoord((float) start_x, (float) start_y);
-                            EditText coordInput = findViewById(R.id.inputCoord);
-                            coordInput.setText(String.valueOf(source_coord));
                             if (toggleButton.isChecked()) {
                                 // Remove all visible pins
                                 if (mapView.hasPins()) {mapView.removePins();}
@@ -81,12 +79,12 @@ public class CalibrationActivity extends MainNavigationDrawer {
                                 mapView.setPin(CALIBRATION_PIN_NAME,source_coord);
                             } else { // toggleButton is not checked
                                 String areaMap = String.valueOf(((EditText) findViewById(R.id.inputAreaMap)).getText());
-                                final String collectionNamePath = selectedStore;
+                                final String inputStore = String.valueOf(((AutoCompleteTextView) findViewById(R.id.inputStore)).getText());
                                 // Everytime you tap it will pull from firestore
                                 db.collection(PATH_TO_LOCATION_LISTS).document(areaMap).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                     @Override
                                     public void onSuccess(DocumentSnapshot document) {
-                                        Map<String, Object> firestoreCoordMap = (HashMap<String, Object>) document.getData().get(collectionNamePath);
+                                        Map<String, Object> firestoreCoordMap = (HashMap<String, Object>) document.getData().get(inputStore);
                                         Map<String, PointF> convertedCoordMap = firestoreMapToCoordMap(firestoreCoordMap);
 
                                         double dy = 0, dx = 0;
@@ -138,10 +136,10 @@ public class CalibrationActivity extends MainNavigationDrawer {
 
         final ToggleButton toggleButton = findViewById(R.id.toggleButton); // default: true
         final Button mainButton = findViewById(R.id.registerButton);
+        final AutoCompleteTextView inputStore = findViewById(R.id.inputStore);
         ConstraintLayout currView = findViewById(R.id.calibration_main);
         final EditText inputLocation = findViewById(R.id.inputLocation);
-        final AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
-        final EditText inputCoords = findViewById(R.id.inputCoord);
+        final EditText inputAreaMap = findViewById(R.id.inputAreaMap);
 
         mainButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -149,14 +147,13 @@ public class CalibrationActivity extends MainNavigationDrawer {
                 mainButton.setFocusableInTouchMode(true); // to clear focus from other input fields
                 mainButton.requestFocus();
                 // Obtain values from input fields as variables
-                final String collectionNamePath = selectedStore;
+                final String collectionNamePath = String.valueOf(inputStore.getText());
                 final String locationName = String.valueOf(inputLocation.getText());
                 final String areaMap = String.valueOf(inputAreaMap.getText());
                 final PointF coordinatesInput = mapView.getPinCoords(CALIBRATION_PIN_NAME);
 
                 if (toggleButton.isChecked()) {
-                    registerLocation(CalibrationActivity.this, areaMap, locationName, collectionNamePath, coordinatesInput);
-                    refreshMapList();
+                    registerLocation(CalibrationActivityDeveloper.this, areaMap, locationName, collectionNamePath, coordinatesInput);
                 } else {
                     redefineLocation(currentLocation, locationName, areaMap, collectionNamePath, coordinatesInput);
                     currentLocation = locationName;
@@ -169,43 +166,39 @@ public class CalibrationActivity extends MainNavigationDrawer {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 final String areaMap = String.valueOf(inputAreaMap.getText());
-                final String collectionNamePath = selectedStore;
+                final String collectionNamePath = String.valueOf(inputStore.getText());
                 if (!isChecked) {
-                    if (registeredAreaMaps.containsKey(areaMap)) {
-                        getAndShowLocations(R.id.calibration_map, areaMap, collectionNamePath);
-                        mainButton.setText(R.string.redefine_button_text);
-                    } else {
-                        Toast.makeText(CalibrationActivity.this, "Area Map Unregistered. Please try again.", Toast.LENGTH_SHORT).show();
-                        toggleButton.setChecked(false);
-                    }
+                    getAndShowLocations(R.id.calibration_map, areaMap, collectionNamePath);
+                    mainButton.setText(R.string.redefine_button_text);
                 } else {
                     mainButton.setText(R.string.register_button_text);
                 }
-             }
-        });
-
-        // If Input Field for "Map Coordinates" is clicked, prompt user to click map
-        inputCoords.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(CalibrationActivity.this, "Please tap the map to input coordinates", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // If Input Field for "AreaMap" is clicked again, hide the keyboard and show dropdown menu
-        inputAreaMap.setOnClickListener(new View.OnClickListener() {
+        // If Input Field for "Store" is clicked again, hide the keyboard and show dropdown menu
+        inputStore.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (!keyboardOpen) {
                     keyboardOpen = true;
                     dropdownStoreOpen = false;
-                    inputAreaMap.dismissDropDown();
+                    inputStore.dismissDropDown();
                 } else {
-                    inputAreaMap.showDropDown();
+                    inputStore.showDropDown();
                     dropdownStoreOpen = true;
                     hideKeyboard(v);
                     keyboardOpen = false;
                 }
+            }
+        });
+
+        // If item is selected from inputStore's dropdown menu, declare relevant booleans to be false;
+        inputStore.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                dropdownStoreOpen = false;
+                keyboardOpen = false;
             }
         });
 
@@ -218,18 +211,15 @@ public class CalibrationActivity extends MainNavigationDrawer {
                 if (inputLocation.isFocused()) {
                     inputLocation.clearFocus();
                 }
-                if (inputAreaMap.isFocused()) {
-                    inputAreaMap.clearFocus();
+                if (inputStore.isFocused()) {
+                    inputStore.clearFocus();
                     if (!dropdownStoreOpen) {
-                        inputAreaMap.showDropDown();
+                        inputStore.showDropDown();
                         dropdownStoreOpen = true;
                     } else {
-                        inputAreaMap.dismissDropDown();
+                        inputStore.dismissDropDown();
                         dropdownStoreOpen = false;
                     }
-                }
-                if (inputCoords.isFocused()) {
-                    inputCoords.clearFocus();
                 }
             }
         });
@@ -237,23 +227,26 @@ public class CalibrationActivity extends MainNavigationDrawer {
 
     // -- Other Functions (GUI Related)
     // Access Firestore and pull a list of Collection names from a document
-    private void refreshMapList() {
+    private void refreshStoreList() {
         // db refers to Firestore Database which is declared in CoreFunctions.java
-        Task<DocumentSnapshot> task = db.document(PATH_TO_AREAMAPS_LIST).get();
+        Task<DocumentSnapshot> task = db.document(PATH_TO_COLLECTION_LIST).get();
         task.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                 if (task.isSuccessful()) {
-                    ArrayList<String> firestoreMaps = new ArrayList<String>();
-                    registeredAreaMaps = task.getResult().getData();
-                    for (String id : registeredAreaMaps.keySet()) {
-                        firestoreMaps.add(id);
+                    ArrayList<String> firestoreCollections = new ArrayList<String>();
+                    Map<String, Object> collectionList = new HashMap<String, Object>();
+                    collectionList = task.getResult().getData();
+                    for (String id : collectionList.keySet()) {
+                        if (!FORBIDDEN_STORES.contains(id)) {
+                            firestoreCollections.add(id);
+                        }
                     }
-                    AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
-                    inputAreaMap.setThreshold(1);
-                    ArrayAdapter<String> adaptedArray = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, firestoreMaps);
-                    inputAreaMap.setAdapter(adaptedArray);
-                    Log.d("LOGGED: ", "List of AreaMaps Loaded");
+                    AutoCompleteTextView storeList = findViewById(R.id.inputStore);
+                    storeList.setThreshold(1);
+                    ArrayAdapter<String> adaptedArray = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, firestoreCollections);
+                    storeList.setAdapter(adaptedArray);
+                    Log.d("LOGGED: ", "List of Collections Loaded");
                 }
             }
         });
@@ -275,7 +268,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
     }
 
     // Function to confirm storing without map coordinates
-    public void UserConfirmation(final UserBooleanCallback myCallback, String msg) {
+    public void UserConfirmation(final CalibrationActivity.UserBooleanCallback myCallback, String msg) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Notice: You're doing great sweetie");
         builder.setMessage(msg);
@@ -332,7 +325,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
                             msgHolder = "Are you sure you wish to register this Anchor without Map Coordinates?";
                         }
                         // confirm with user this is intentional
-                        UserConfirmation(new UserBooleanCallback() {
+                        UserConfirmation(new CalibrationActivity.UserBooleanCallback() {
                             @Override
                             public void onCallback(Boolean confirm) {
                                 if (!confirm) {

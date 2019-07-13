@@ -19,14 +19,12 @@ public class WelcomeActivity extends MainNavigationDrawer {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
-        Log.d("LOGGED", selectedStore);
-
         // "Tap screen to continue" Listener
         ConstraintLayout currView = findViewById(R.id.welcome_layout);
         currView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent newIntent = new Intent(getApplicationContext(), LocalizerActivity.class);
+                Intent newIntent = new Intent(getApplicationContext(), CalibrationActivity.class);
                 startActivity(newIntent);
             }
         });

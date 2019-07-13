@@ -2,16 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
     <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_map"
-            android:icon="@drawable/ic_location"
-            android:title="@string/menu_home"
-            />
+
         <item
             android:id="@+id/calibration_link"
             android:icon="@drawable/pin_settings"
             android:title="@string/menu_calibration"
             />
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@drawable/ic_location"
+            android:title="@string/menu_home"
+            />
+
     </group>
     <group>
         <item
