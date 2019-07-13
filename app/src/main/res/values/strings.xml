@@ -15,6 +15,8 @@
     <string name="redefine_button_text">Redefine</string>
     <string name="tester">FINDUS</string>
     <string name="self_credit">An Orbital project by \nJasper and Ahmad</string>
+    <string name="choose_image">Choose image</string>
+    <string name="upload_image">Upload_image</string>
 
     <string name="area_map_text">Area Map  :</string>
     <string name="location_text">Location  :</string>

@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".CalibrationActivity"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/calibration_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:id="@+id/calibration_main"
-    >
+    tools:context=".CalibrationActivity">
 
     <com.example.findus.ModifiedImageView
         android:id="@+id/calibration_map"
@@ -49,67 +47,67 @@
 
     <Button
         android:id="@+id/registerButton"
-        android:text="@string/register_button_text"
-        android:background="@drawable/capsule_button"
-
         android:layout_width="200sp"
         android:layout_height="wrap_content"
+
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
+        android:background="@drawable/capsule_button"
+        android:text="@string/register_button_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <AutoCompleteTextView
         android:id="@+id/inputAreaMap"
-        android:text="@string/default_area_map_input"
-        android:inputType="textAutoComplete"
-
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+
         android:layout_marginTop="40dp"
         android:ems="10"
+        android:inputType="textAutoComplete"
+        android:text="@string/default_area_map_input"
         app:layout_constraintEnd_toEndOf="@+id/outline"
         app:layout_constraintTop_toBottomOf="@+id/outline" />
 
     <EditText
         android:id="@+id/inputLocation"
-        android:text="@string/tester"
-
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:ems="10"
         android:inputType="textPersonName"
+        android:text="@string/tester"
         app:layout_constraintEnd_toEndOf="@+id/inputAreaMap"
         app:layout_constraintTop_toBottomOf="@+id/inputAreaMap" />
 
     <EditText
         android:id="@+id/inputCoord"
-        android:text=""
-        android:inputType="none"
-        android:clickable="false"
-        android:editable="false"
-
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:clickable="false"
+
+        android:editable="false"
         android:ems="10"
+        android:inputType="none"
+        android:text=""
         app:layout_constraintEnd_toEndOf="@+id/inputLocation"
         app:layout_constraintTop_toBottomOf="@+id/inputLocation" />
 
     <TextView
         android:id="@+id/labelAreaMap"
         android:layout_width="110sp"
-        android:gravity="end"
-        android:text="@string/area_map_text"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="10dp"
+        android:gravity="end"
+
+        android:text="@string/area_map_text"
+        android:textColor="@color/black"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/inputAreaMap"
         app:layout_constraintEnd_toStartOf="@+id/inputAreaMap"
         app:layout_constraintStart_toStartOf="@+id/outline"
@@ -132,16 +130,43 @@
 
     <TextView
         android:id="@+id/labelCoord"
-        android:text="@string/coord_text"
-        android:gravity="end"
         android:layout_width="110sp"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-
         android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="@string/coord_text"
+        android:textColor="@color/black"
+
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="@+id/inputCoord"
         app:layout_constraintEnd_toEndOf="@+id/labelLocation"
         app:layout_constraintStart_toStartOf="@+id/calibration_map"
         app:layout_constraintTop_toTopOf="@+id/inputCoord" />
+
+    <Button
+        android:id="@+id/choose_image"
+        android:layout_width="163dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="43dp"
+        android:layout_marginTop="287dp"
+        android:layout_marginEnd="205dp"
+        android:layout_marginBottom="337dp"
+        android:text="@string/choose_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/upload_image"
+        android:layout_width="163dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="206dp"
+        android:layout_marginTop="287dp"
+        android:layout_marginEnd="42dp"
+        android:layout_marginBottom="337dp"
+        android:text="upload_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
