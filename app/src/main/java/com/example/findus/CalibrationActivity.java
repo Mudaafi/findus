@@ -1,10 +1,15 @@
 package com.example.findus;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -22,25 +27,38 @@ import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.davemorrissey.labs.subscaleview.ImageSource;
+import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class CalibrationActivity extends MainNavigationDrawer {
     // -- View Variables
+    FirebaseStorage storage;
+    StorageReference storageReference;
     ModifiedImageView mapView; // Map
+    ModifiedImageView imageView;
     boolean keyboardOpen = false; // To hide and show keyboard // For revealing overlapping dropdown menu
     boolean dropdownStoreOpen = false; // To hide and show storeInput dropdown(For UI purposes)
     private final static String CALIBRATION_PIN_NAME = "Calibration Pin"; // For naming the pin to be stored together with location
     private String currentLocation;
     private Map<String, Object> registeredAreaMaps = new HashMap<String, Object>();
-
+    private Button btnChoose, btnUpload;
+    private Uri filePath;
+    private final int PICK_IMAGE_REQUEST = 71;
     // -- OnCreate (i.e. main)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +68,8 @@ public class CalibrationActivity extends MainNavigationDrawer {
         refreshMapList();
 
         // -- Map Codes
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
         mapView = (ModifiedImageView) findViewById(R.id.calibration_map);
         mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
         Log.d("LOGGED", "getScale() / maxScale: " + String.valueOf(mapView.getScale()) + " / " + String.valueOf(mapView.getMaxScale()));
@@ -135,13 +155,29 @@ public class CalibrationActivity extends MainNavigationDrawer {
 
 
         // -- GUI Codes
-
+        final Button btnChoose = findViewById(R.id.choose_image);
+        final Button btnUpload = findViewById(R.id.upload_image);
+        SubsamplingScaleImageView imageView = (SubsamplingScaleImageView)findViewById(R.id.outline);
         final ToggleButton toggleButton = findViewById(R.id.toggleButton); // default: true
         final Button mainButton = findViewById(R.id.registerButton);
         ConstraintLayout currView = findViewById(R.id.calibration_main);
         final EditText inputLocation = findViewById(R.id.inputLocation);
         final AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
         final EditText inputCoords = findViewById(R.id.inputCoord);
+
+        btnChoose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                chooseImage();
+            }
+        });
+
+        btnUpload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                uploadImage();
+            }
+        });
 
         mainButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -235,6 +271,64 @@ public class CalibrationActivity extends MainNavigationDrawer {
         });
     }
 
+    private void chooseImage() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
+                && data != null && data.getData() != null )
+        {
+            filePath = data.getData();
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
+                imageView.setImage(ImageSource.bitmap(bitmap));
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+    private void uploadImage() {
+
+        if(filePath != null)
+        {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading...");
+            progressDialog.show();
+
+            StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
+            ref.putFile(filePath)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            progressDialog.dismiss();
+                            Toast.makeText(CalibrationActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(CalibrationActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                            double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
+                                    .getTotalByteCount());
+                            progressDialog.setMessage("Uploaded "+(int)progress+"%");
+                        }
+                    });
+        }
+    }
     // -- Other Functions (GUI Related)
     // Access Firestore and pull a list of Collection names from a document
     private void refreshMapList() {

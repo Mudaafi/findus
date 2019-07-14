@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
+INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
+INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
+INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
 MERGED from [androidx.multidex:multidex:2.0.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\06c527738cdad073af2c11dd001cf13e\AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.material:material:1.0.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\270a692bd3e6148ace9592c44113e5de\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.appcompat:appcompat:1.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\9cafeae62db29e8c8280de269c4a0986\AndroidManifest.xml:17:1-22:12
@@ -67,22 +67,22 @@ MERGED from [androidx.arch.core:core-runtime:2.0.0] C:\Users\Jasper Ong\.gradle\
 MERGED from [com.google.firebase:firebase-database-collection:16.0.1] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d1a02a685e262ad081f6a41dea75c2b0\AndroidManifest.xml:2:1-7:12
 MERGED from [com.google.firebase:protolite-well-known-types:16.0.1] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\b388e0fbed0a3d3d51a0f91bbc3d91da\AndroidManifest.xml:2:1-11:12
 MERGED from [io.grpc:grpc-android:1.21.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\120b650240756f22b4e85dabe6ff7a63\AndroidManifest.xml:2:1-13:12
-INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
-INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
+INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
+INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
+INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
 	package
 		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:4:5-33
 		INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
 		INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
 	android:versionName
 		INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
 		INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
 	xmlns:dist
 		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:3:5-61
 	android:versionCode
 		INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-31:12
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:1-34:12
 		INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
 	xmlns:android
 		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:2:11-69
@@ -102,12 +102,32 @@ uses-permission#android.permission.ACCESS_COARSE_LOCATION
 ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:9:5-80
 	android:name
 		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:9:22-78
+uses-permission#android.permission.INTERNET
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:10:5-67
+MERGED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:14:5-67
+MERGED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:14:5-67
+MERGED from [com.google.android.gms:play-services-measurement-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\9fa2b85f1e0a3ed0bc3e8255f496cfc3\AndroidManifest.xml:22:5-67
+MERGED from [com.google.android.gms:play-services-measurement-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\9fa2b85f1e0a3ed0bc3e8255f496cfc3\AndroidManifest.xml:22:5-67
+MERGED from [com.google.firebase:firebase-iid:17.1.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\e493455546df331ebef27d14721053e8\AndroidManifest.xml:23:5-67
+MERGED from [com.google.firebase:firebase-iid:17.1.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\e493455546df331ebef27d14721053e8\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\ea1db3740d3f669d3d33777cf8169487\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\ea1db3740d3f669d3d33777cf8169487\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-impl:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d6a4bbc9625f367f22e5bf67de39fe64\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-impl:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d6a4bbc9625f367f22e5bf67de39fe64\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-sdk-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\734fa50e58524855b22d25a8994f2655\AndroidManifest.xml:23:5-67
+MERGED from [com.google.android.gms:play-services-measurement-sdk-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\734fa50e58524855b22d25a8994f2655\AndroidManifest.xml:23:5-67
+	android:name
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:10:22-64
+uses-permission#android.permission.READ_EXTERNAL_STORAGE
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:11:5-80
+	android:name
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:11:22-77
 dist:module
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:11:5-40
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:14:5-40
 	dist:instant
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:11:18-37
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:14:18-37
 application
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:13:5-29:19
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:16:5-32:19
 MERGED from [com.google.android.material:material:1.0.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\270a692bd3e6148ace9592c44113e5de\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.0.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\270a692bd3e6148ace9592c44113e5de\AndroidManifest.xml:22:5-20
 MERGED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:16:5-24:19
@@ -161,39 +181,39 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.0.0] C:\Users\Ja
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.0.1] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\eb7dadae383fba9b6031566b3675a4d8\AndroidManifest.xml:22:18-86
 	android:supportsRtl
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:18:9-35
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:21:9-35
 	android:label
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:16:9-31
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:19:9-31
 	android:roundIcon
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:17:9-54
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:20:9-54
 	android:icon
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:15:9-43
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:18:9-43
 	android:allowBackup
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:14:9-35
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:17:9-35
 	android:theme
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:19:9-40
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:22:9-40
 activity#com.example.findus.WelcomeActivity
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:20:9-26:20
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:23:9-29:20
 	android:name
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:20:19-68
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:23:19-68
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:21:13-25:29
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:24:13-28:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:22:17-69
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:25:17-69
 	android:name
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:22:25-66
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:25:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:24:17-77
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:27:17-77
 	android:name
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:24:27-74
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:27:27-74
 activity#com.example.findus.LocalizerActivity
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:27:9-82
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:30:9-82
 	android:name
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:27:19-70
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:30:19-70
 activity#com.example.findus.CalibrationActivity
-ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:28:9-84
+ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:31:9-84
 	android:name
-		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:28:19-72
+		ADDED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml:31:19-72
 uses-sdk
 INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\Users\Jasper Ong\Desktop\findus\findus\app\src\main\AndroidManifest.xml
@@ -350,20 +370,6 @@ MERGED from [io.grpc:grpc-android:1.21.0] C:\Users\Jasper Ong\.gradle\caches\tra
 MERGED from [io.grpc:grpc-android:1.21.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\120b650240756f22b4e85dabe6ff7a63\AndroidManifest.xml:11:5-79
 	android:name
 		ADDED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:13:22-76
-uses-permission#android.permission.INTERNET
-ADDED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:14:5-67
-MERGED from [com.google.android.gms:play-services-measurement-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\9fa2b85f1e0a3ed0bc3e8255f496cfc3\AndroidManifest.xml:22:5-67
-MERGED from [com.google.android.gms:play-services-measurement-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\9fa2b85f1e0a3ed0bc3e8255f496cfc3\AndroidManifest.xml:22:5-67
-MERGED from [com.google.firebase:firebase-iid:17.1.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\e493455546df331ebef27d14721053e8\AndroidManifest.xml:23:5-67
-MERGED from [com.google.firebase:firebase-iid:17.1.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\e493455546df331ebef27d14721053e8\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\ea1db3740d3f669d3d33777cf8169487\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\ea1db3740d3f669d3d33777cf8169487\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-impl:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d6a4bbc9625f367f22e5bf67de39fe64\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-impl:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d6a4bbc9625f367f22e5bf67de39fe64\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-sdk-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\734fa50e58524855b22d25a8994f2655\AndroidManifest.xml:23:5-67
-MERGED from [com.google.android.gms:play-services-measurement-sdk-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\734fa50e58524855b22d25a8994f2655\AndroidManifest.xml:23:5-67
-	android:name
-		ADDED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:14:22-64
 service#com.google.firebase.components.ComponentDiscoveryService
 ADDED from [com.google.firebase:firebase-firestore:19.0.2] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\d93fbb716e15f296edca72cf89eb42ab\AndroidManifest.xml:17:9-23:19
 MERGED from [com.google.android.gms:play-services-measurement-api:16.5.0] C:\Users\Jasper Ong\.gradle\caches\transforms-2\files-2.1\9fa2b85f1e0a3ed0bc3e8255f496cfc3\AndroidManifest.xml:27:9-33:19
