@@ -50,7 +50,6 @@ public class CalibrationActivity extends MainNavigationDrawer {
     FirebaseStorage storage;
     StorageReference storageReference;
     ModifiedImageView mapView; // Map
-    ModifiedImageView imageView;
     boolean keyboardOpen = false; // To hide and show keyboard // For revealing overlapping dropdown menu
     boolean dropdownStoreOpen = false; // To hide and show storeInput dropdown(For UI purposes)
     private final static String CALIBRATION_PIN_NAME = "Calibration Pin"; // For naming the pin to be stored together with location
@@ -157,7 +156,6 @@ public class CalibrationActivity extends MainNavigationDrawer {
         // -- GUI Codes
         final Button btnChoose = findViewById(R.id.choose_image);
         final Button btnUpload = findViewById(R.id.upload_image);
-        SubsamplingScaleImageView imageView = (SubsamplingScaleImageView)findViewById(R.id.outline);
         final ToggleButton toggleButton = findViewById(R.id.toggleButton); // default: true
         final Button mainButton = findViewById(R.id.registerButton);
         ConstraintLayout currView = findViewById(R.id.calibration_main);
@@ -287,7 +285,9 @@ public class CalibrationActivity extends MainNavigationDrawer {
             filePath = data.getData();
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-                imageView.setImage(ImageSource.bitmap(bitmap));
+                mapView.setImage(ImageSource.bitmap(bitmap));
+                AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
+                inputAreaMap.setText("");
             }
             catch (IOException e)
             {
