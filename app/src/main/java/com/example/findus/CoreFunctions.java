@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -33,6 +34,8 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -331,7 +334,7 @@ public class CoreFunctions extends AppCompatActivity {
 
     public void redefineLocation(final String nameFrom, final String nameTo, final String areaMap, final String storeInput, @Nullable final PointF coordinatesTo) {
         //TO-CHECK
-        if (storeInput.equals("Access Points") || storeInput.equals("") || nameTo.equals("")) {return;} // Access Points is protected
+        if (storeInput.equals("") || nameTo.equals("")) {return;}
         final DocumentReference specificLocationList = db.collection(PATH_TO_LOCATION_LISTS).document(areaMap);
         specificLocationList.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -341,45 +344,47 @@ public class CoreFunctions extends AppCompatActivity {
                             task.getException());
                 } else {
                     DocumentSnapshot document = task.getResult();
-                    Map<String, Object> locationCoords = (HashMap<String, Object>) document.getData().get(storeInput);
-                    Map<String, PointF> convertedLocationCoords = firestoreMapToCoordMap(locationCoords);
-                    String locationPath;
-                    // Changing a Location's Name
-                    if (!nameFrom.equals(nameTo)) {
-                        //perform name change
-                        // For Access Points
-                        db.collection(storeInput).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-                            @Override
-                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-                                for (DocumentSnapshot document : queryDocumentSnapshots) {
-                                    Map<String, Long> firestoreMap = (HashMap<String, Long>) document.getData().get(MAP_NAME_IN_FS_DOC);
-                                    db.collection(storeInput).document(document.getId()).update(MAP_NAME_IN_FS_DOC + "." + nameTo, firestoreMap.get(nameFrom));
-                                    db.collection(storeInput).document(document.getId()).update(MAP_NAME_IN_FS_DOC + "." + nameFrom, FieldValue.delete());
+                    if (document.exists()) {
+                        Map<String, Object> locationCoords = (HashMap<String, Object>) document.getData().get(storeInput);
+                        Map<String, PointF> convertedLocationCoords = firestoreMapToCoordMap(locationCoords);
+                        String locationPath;
+                        // Changing a Location's Name
+                        if (!nameFrom.equals(nameTo)) {
+                            //perform name change
+                            // For Access Points
+                            db.collection(storeInput).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                                @Override
+                                public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                    for (DocumentSnapshot document : queryDocumentSnapshots) {
+                                        Map<String, Long> firestoreMap = (HashMap<String, Long>) document.getData().get(MAP_NAME_IN_FS_DOC);
+                                        db.collection(storeInput).document(document.getId()).update(MAP_NAME_IN_FS_DOC + "." + nameTo, firestoreMap.get(nameFrom));
+                                        db.collection(storeInput).document(document.getId()).update(MAP_NAME_IN_FS_DOC + "." + nameFrom, FieldValue.delete());
+                                    }
                                 }
-                            }
-                        });
+                            });
 
-                        // for LocationList
-                        PointF holder = convertedLocationCoords.get(nameFrom);
-                        locationPath = storeInput + "." + nameFrom;
-                        specificLocationList.update(locationPath, FieldValue.delete());
-                        locationPath = storeInput + "." + nameTo;
-                        specificLocationList.update(locationPath, holder);
-                    }
-                    // Changing a Location's Coordinates
-                    if (coordinatesTo != null) {
-                        PointF coordinatesFrom = convertedLocationCoords.get(nameFrom);
-                        if (coordinatesFrom != null) {
-                            int dX = Math.abs((int) coordinatesFrom.x - (int) coordinatesTo.x);
-                            int dY = Math.abs((int) coordinatesFrom.y - (int) coordinatesTo.y);
-                            Float touchSlop = 1f;
-                            if (Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2)) >= touchSlop) {
-                                // Change the Coordinates
-                                locationPath = storeInput + "." + nameTo;
-                                specificLocationList.update(nameTo, coordinatesTo);
+                            // for LocationList
+                            PointF holder = convertedLocationCoords.get(nameFrom);
+                            locationPath = storeInput + "." + nameFrom;
+                            specificLocationList.update(locationPath, FieldValue.delete());
+                            locationPath = storeInput + "." + nameTo;
+                            specificLocationList.update(locationPath, holder);
+                        }
+                        // Changing a Location's Coordinates
+                        if (coordinatesTo != null) {
+                            PointF coordinatesFrom = convertedLocationCoords.get(nameFrom);
+                            if (coordinatesFrom != null) {
+                                int dX = Math.abs((int) coordinatesFrom.x - (int) coordinatesTo.x);
+                                int dY = Math.abs((int) coordinatesFrom.y - (int) coordinatesTo.y);
+                                Float touchSlop = 1f;
+                                if (Math.sqrt(Math.pow(dX, 2) + Math.pow(dY, 2)) >= touchSlop) {
+                                    // Change the Coordinates
+                                    locationPath = storeInput + "." + nameTo;
+                                    specificLocationList.update(nameTo, coordinatesTo);
+                                }
+                            } else {
+                                Log.d("LOGGED", "@/CoreFunctions/redefineLocation/: " + nameFrom + " has no coordinates.");
                             }
-                        } else {
-                            Log.d("LOGGED", "@/CoreFunctions/redefineLocation/: " + nameFrom +" has no coordinates.");
                         }
                     }
                 }
@@ -420,14 +425,18 @@ public class CoreFunctions extends AppCompatActivity {
                     Log.d("LOGGED","@/CoreFunctions/getAndShowLocations/: Could not find the corresponding location list" ,task.getException());
                 } else {
                     DocumentSnapshot document = task.getResult();
-                    Map<String, Object> pinCoords = (HashMap<String, Object>) document.getData().get(storeInput);
-                    Log.d("LOGGED", "@/CoreFunctions/getAndShowLocations/: " + String.valueOf(pinCoords));
-                    if (pinCoords == null) {return;}
+                    if (document.exists()) {
+                        Map<String, Object> pinCoords = (HashMap<String, Object>) document.getData().get(storeInput);
+                        Log.d("LOGGED", "@/CoreFunctions/getAndShowLocations/: " + String.valueOf(pinCoords));
+                        if (pinCoords == null) {
+                            return;
+                        }
 
-                    Map<String, PointF> convPinCoord = firestoreMapToCoordMap(pinCoords);
-                    for (String point : convPinCoord.keySet()) {
-                        if (pinCoords.get(point) != null) {
-                            mapView.setPin(point, convPinCoord.get(point));
+                        Map<String, PointF> convPinCoord = firestoreMapToCoordMap(pinCoords);
+                        for (String point : convPinCoord.keySet()) {
+                            if (pinCoords.get(point) != null) {
+                                mapView.setPin(point, convPinCoord.get(point));
+                            }
                         }
                     }
                 }
@@ -497,6 +506,17 @@ public class CoreFunctions extends AppCompatActivity {
 
 
     // -- Code for Initializations
+
+    public Uri getFilePath(Integer id, String imageRefName) {
+        Uri filePath = Uri.parse("android.resource://"+this.getPackageName()+"/drawable/" + id);
+        return filePath;
+        /**
+        FirebaseStorage storage;
+        storage = FirebaseStorage.getInstance();
+        StorageReference storageReference = storage.getReference();
+        StorageReference ref = storageReference.child("images/"+ imageRefName);
+        ref.putFile(filePath); */
+    }
 
     // Pulls from a Collection of BSSID Docs[location -> RSSI] the Locations and stores them in a
     // separate Document (areaMap) in the LocationLists Collection

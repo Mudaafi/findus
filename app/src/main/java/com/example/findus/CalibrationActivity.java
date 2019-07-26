@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Bundle;
@@ -65,13 +66,11 @@ public class CalibrationActivity extends MainNavigationDrawer {
         setContentView(R.layout.calibration_main);
 
         refreshMapList();
-
         // -- Map Codes
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         mapView = (ModifiedImageView) findViewById(R.id.calibration_map);
         mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
-        Log.d("LOGGED", "getScale() / maxScale: " + String.valueOf(mapView.getScale()) + " / " + String.valueOf(mapView.getMaxScale()));
         // For placing pin (singular)
         mapView.setOnImageEventListener(new ModifiedImageView.OnImageEventListener() {
             @Override
@@ -81,7 +80,11 @@ public class CalibrationActivity extends MainNavigationDrawer {
             public void onImageLoaded() {
                 mapView.setMinimumScaleType(ModifiedImageView.SCALE_TYPE_CENTER_CROP);
                 mapView.setScaleAndCenter(1.2f, mapView.getCenter());
-                Log.d("LOGGED", "getScale() / maxScale: " + String.valueOf(mapView.getScale()) + " / " + String.valueOf(mapView.getMaxScale()));
+
+                Log.d("LOGGED", "Calibration/onImageLoaded - getScale() / maxScale: " + String.valueOf(mapView.getScale()) + " / " + String.valueOf(mapView.getMaxScale()));
+                Log.d("LOGGED", "Calibration/onImageLoaded - center: " + String.valueOf(mapView.getCenter()));
+                Log.d("LOGGED", "Calibration/onImageLoaded - height: " + String.valueOf(mapView.getSHeight()));
+                Log.d("LOGGED", "Calibration/onImageLoaded - width: " + String.valueOf(mapView.getSWidth()));
 
                 mapView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
@@ -188,6 +191,18 @@ public class CalibrationActivity extends MainNavigationDrawer {
                 final String areaMap = String.valueOf(inputAreaMap.getText());
                 final PointF coordinatesInput = mapView.getPinCoords(CALIBRATION_PIN_NAME);
 
+                if (locationName.equals("")|| !locationName.matches(".*[a-zA-Z]+.*") ||
+                        locationName.matches(".*/+.*") || locationName.matches(".*.+.*")) {
+                    Toast.makeText(CalibrationActivity.this, "Improper name for location detected", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (areaMap.equals("")|| !areaMap.matches(".*[a-zA-Z]+.*") ||
+                        areaMap.matches(".*/+.*") || areaMap.matches(".*.+.*")) {
+                    Toast.makeText(CalibrationActivity.this, "Improper name for areaMap detected", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (toggleButton.isChecked()) {
                     registerLocation(CalibrationActivity.this, areaMap, locationName, collectionNamePath, coordinatesInput);
                     refreshMapList();
@@ -226,6 +241,14 @@ public class CalibrationActivity extends MainNavigationDrawer {
             }
         });
 
+        // If an item is selected from the dropdown
+        inputAreaMap.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //Toast.makeText(CalibrationActivity.this, inputAreaMap.getText().toString(), Toast.LENGTH_SHORT).show();
+                getImage(inputAreaMap.getText().toString());
+            }
+        });
         // If Input Field for "AreaMap" is clicked again, hide the keyboard and show dropdown menu
         inputAreaMap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -295,21 +318,84 @@ public class CalibrationActivity extends MainNavigationDrawer {
             }
         }
     }
-    private void uploadImage() {
 
+    private void getImage(final String mapName) {
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Retrieving...");
+        progressDialog.show();
+
+        final StorageReference ref = storageReference.child("images/"+ mapName);
+        // Get the Source Dimensions First
+        db.document(PATH_TO_AREAMAPS_LIST).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot document) {
+                if (!document.exists()) {
+                    Log.d("LOGGED", "Calibration/getImage - Error accessing areaMapsList");
+                    return;
+                } else {
+                    Map<String, Object> mapList = new HashMap<String, Object>();
+                    mapList = document.getData();
+                    final Map<String, Long> sourceDimen = (HashMap<String, Long>) mapList.get(mapName);
+
+                    if (sourceDimen == null || sourceDimen.isEmpty()) {
+                        Log.d("LOGGED", "Calibration/getImage - NO DIMENSIONS FOUND");
+                        return;
+                    }
+
+                    // Get The Image and Resize it
+                    final long ONE_MEGABYTE = 1024 * 1024;
+                    ref.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                        @Override
+                        public void onSuccess(byte[] bytes) {
+                            // Data for "images/island.jpg" is returns, use this as needed
+                            Bitmap retrievedImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            Bitmap resizedImage = Bitmap.createScaledBitmap(retrievedImage,
+                                    sourceDimen.get("width").intValue(),sourceDimen.get("height").intValue(), true);
+                            mapView.setImage(ImageSource.bitmap(resizedImage));
+                            progressDialog.dismiss();
+                            Toast.makeText(CalibrationActivity.this, "Retrieved", Toast.LENGTH_SHORT).show();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(CalibrationActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    ;
+                }
+            }
+        });
+
+
+    }
+    private void uploadImage() {
         if(filePath != null)
         {
+            AutoCompleteTextView areaMapInput = findViewById(R.id.inputAreaMap);
+            final String mapName = areaMapInput.getText().toString();
+            // Validate input to contain at least one alphabet
+            if (mapName.equals("")|| !mapName.matches(".*[a-zA-Z]+.*") ||
+                    mapName.matches(".*/+.*") || mapName.matches(".*.+.*")) {
+                Toast.makeText(CalibrationActivity.this, "Improper name detected", Toast.LENGTH_SHORT).show();
+                return;
+            }
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
-
-            StorageReference ref = storageReference.child("images/"+ UUID.randomUUID().toString());
+            StorageReference ref = storageReference.child("images/"+ mapName);
             ref.putFile(filePath)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                             progressDialog.dismiss();
                             Toast.makeText(CalibrationActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                            // Adding to database Miscellaneous Page
+                            Map<String, Long> sourceDimen = new HashMap<String, Long>();
+                            sourceDimen.put("height", (long) mapView.getSHeight());
+                            sourceDimen.put("width", (long) mapView.getSWidth());
+                            db.document(PATH_TO_AREAMAPS_LIST).update(mapName, sourceDimen);
+                            refreshMapList();
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -327,6 +413,8 @@ public class CalibrationActivity extends MainNavigationDrawer {
                             progressDialog.setMessage("Uploaded "+(int)progress+"%");
                         }
                     });
+        } else {
+            Toast.makeText(CalibrationActivity.this, "No Image Detected", Toast.LENGTH_SHORT).show();
         }
     }
     // -- Other Functions (GUI Related)
