@@ -1,9 +1,12 @@
 package com.example.findus;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.PointF;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -25,7 +28,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
@@ -51,15 +56,21 @@ public class CoreFunctions extends AppCompatActivity {
     public static final String PATH_TO_COLLECTION_LIST = "Miscellaneous/CollectionList";
     public static final String PATH_TO_AREAMAPS_LIST = "Miscellaneous/AreaMapsList";
     public static final String PATH_TO_LOCATION_LISTS = "LocationLists";
+    public static final String PATH_TO_LOCATION_TO_AREAMAPS_LIST = "Miscellaneous/LocationToAreaMaps";
     public static final List<String> FORBIDDEN_STORES = Arrays.asList("Miscellaneous", "LocationLists");
-    public static final String CASE_LOCALIZER = "Localizer"; // case for getAndScanResults
+    public static final String CASE_LOCALIZER = "Localizer"; // case for getAndShowScanResults
     private static final String MAP_NAME_IN_FS_DOC = "AnchorRefs"; // for pushCalibration
+    // Database Variables
+    public FirebaseFirestore db = FirebaseFirestore.getInstance();
+    public FirebaseStorage storage = FirebaseStorage.getInstance();
+    public StorageReference storageReference = storage.getReference();
+    public Map<String, Object> registeredAreaMaps = new HashMap<String, Object>();
+
     // String Variables
     public String dialogString = "lel"; // For Alert Dialog in getUserLocation
     public String selectedStore;
     // Other Variables
     List<ScanResult> wifiList; // For getAndScanResults' wifi scan
-    public FirebaseFirestore db = FirebaseFirestore.getInstance();
     Map<String, Map<String, Long>> locationList = new HashMap<String, Map<String, Long>>(); // For queryFirestore's asynchronous
     private Integer asyncCounter = 0; // For queryFirestore's asynchronous calls
     private boolean asyncBoolDone = false;
@@ -250,7 +261,7 @@ public class CoreFunctions extends AppCompatActivity {
         double d = 0;
         int counter = 0;
         double minimum = 999999;
-        String finalLocation = "123";
+        String finalLocation = "No Viable Location Found";
         //String finalBssid = "";
         //String testBssid = "";
 
@@ -335,6 +346,7 @@ public class CoreFunctions extends AppCompatActivity {
     public void redefineLocation(final String nameFrom, final String nameTo, final String areaMap, final String storeInput, @Nullable final PointF coordinatesTo) {
         //TO-CHECK
         if (storeInput.equals("") || nameTo.equals("")) {return;}
+        // Checks if a Location is registered
         final DocumentReference specificLocationList = db.collection(PATH_TO_LOCATION_LISTS).document(areaMap);
         specificLocationList.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -504,8 +516,79 @@ public class CoreFunctions extends AppCompatActivity {
         });
     }
 
+    // Pulls an image from Firebase given a name and uploads it onto a mapview
+    public void getImage(final Context context, final String mapName, final ModifiedImageView mapView) {
+        final ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setTitle("Retrieving...");
+        progressDialog.show();
+
+        final StorageReference ref = storageReference.child("images/"+ mapName);
+        // Get the Source Dimensions First
+        db.document(PATH_TO_AREAMAPS_LIST).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot document) {
+                if (!document.exists()) {
+                    Log.d("LOGGED", "CoreFunctions - Error accessing areaMapsList");
+                    return;
+                } else {
+                    Map<String, Object> mapList = new HashMap<String, Object>();
+                    mapList = document.getData();
+                    final Map<String, Long> sourceDimen = (HashMap<String, Long>) mapList.get(mapName);
+
+                    if (sourceDimen == null || sourceDimen.isEmpty()) {
+                        Log.d("LOGGED", "CoreFunctions - NO DIMENSIONS FOUND");
+                        return;
+                    }
+
+                    // Get The Image and Resize it
+                    final long ONE_MEGABYTE = 1024 * 1024;
+                    ref.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                        @Override
+                        public void onSuccess(byte[] bytes) {
+                            // Data for "images/island.jpg" is returns, use this as needed
+                            Bitmap retrievedImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                            Bitmap resizedImage = Bitmap.createScaledBitmap(retrievedImage,
+                                    sourceDimen.get("width").intValue(),sourceDimen.get("height").intValue(), true);
+                            mapView.setImage(ImageSource.bitmap(resizedImage));
+                            progressDialog.dismiss();
+                            Toast.makeText(context, "Retrieved", Toast.LENGTH_SHORT).show();
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(context, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    ;
+                }
+            }
+        });
+    }
+
+    // get AreaMap from a Location Anchor
+
 
     // -- Code for Initializations
+
+    public void initalizeLocationsMaps() {
+        Log.d("LOGGED", "@/CoreFunctions/initializeLocations/: Initializing code");
+        final String areaMap = "COM 1 Level 2, NUS";
+        db.collection(PATH_TO_LOCATION_LISTS).document(areaMap).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+            @Override
+            public void onSuccess(DocumentSnapshot document) {
+                if (document.exists()) {
+                    Map<String, Object> firstMap = new HashMap<>();
+                    firstMap = document.getData();
+                    Map<String, Object> secondMap = new HashMap<>();
+                    secondMap = (HashMap<String, Object>)firstMap.get("Access Points");
+                    for (String key : secondMap.keySet()) {
+                        db.document(PATH_TO_LOCATION_TO_AREAMAPS_LIST).update(key, areaMap);
+                    }
+                }
+            }
+        });
+    }
 
     public Uri getFilePath(Integer id, String imageRefName) {
         Uri filePath = Uri.parse("android.resource://"+this.getPackageName()+"/drawable/" + id);
@@ -520,7 +603,7 @@ public class CoreFunctions extends AppCompatActivity {
 
     // Pulls from a Collection of BSSID Docs[location -> RSSI] the Locations and stores them in a
     // separate Document (areaMap) in the LocationLists Collection
-    public void initializeLocations() {
+    public void initializeLocationsCoords() {
         Log.d("LOGGED", "@/CoreFunctions/initializeLocations/: Initializing code");
         final String areaMap = "COM 1 Level 2, NUS";
 

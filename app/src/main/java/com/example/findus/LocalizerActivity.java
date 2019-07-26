@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -49,7 +50,22 @@ public class LocalizerActivity extends MainNavigationDrawer {
 
         // -- Map Codes
         mapView = (ModifiedImageView) findViewById(R.id.localizer_map);
-        mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
+        // Pull Map from Firestore
+        if (systemsCheck(LocalizerActivity.this)) {
+            queryFirestore(new UserStringCallback() {
+                @Override
+                public void onCallback(String currLocation) {
+                    if (currLocation != null) {
+                        Log.d("LOGGED", "Localizer/OnCreate: " + currLocation);
+                        //displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
+                    } else {
+                        Log.d("LOGGED", "No Matching Area Map Found");
+                        Toast.makeText(LocalizerActivity.this, "No Matching Area Map Found. Sorry", Toast.LENGTH_SHORT).show();
+                        mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
+                    }
+                }
+            }, selectedStore);
+        }
         Log.d("LOGGED", "getScale() / maxScale: " + String.valueOf(mapView.getScale()) + " / " + String.valueOf(mapView.getMaxScale()));
         // For placing pin (singular)
         mapView.setOnImageEventListener(new ModifiedImageView.OnImageEventListener() {
@@ -153,6 +169,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
                         PointF pinCoords = convertedMapCoords.get(currLocation);
                         mapView.removePins();
                         mapView.setPin(CURRENT_LOCATION_PIN_NAME, pinCoords);
+                        mapView.setScaleAndCenter(1.2f, convertedMapCoords.get(currLocation));
                         return;
                     }
                 }

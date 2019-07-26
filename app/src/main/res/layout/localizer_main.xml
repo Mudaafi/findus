@@ -11,10 +11,13 @@
 
     <Button
         android:id="@+id/localizerButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/tester"
-        android:layout_marginBottom="30dp"
+        android:layout_width="64sp"
+        android:layout_height="64sp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:alpha="0.8"
+        android:background="@drawable/trying_circle"
+        android:text=""
         app:layout_constraintBottom_toBottomOf="@+id/localizer_map"
         app:layout_constraintEnd_toEndOf="parent" />
 

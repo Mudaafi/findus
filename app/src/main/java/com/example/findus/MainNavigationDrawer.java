@@ -49,14 +49,9 @@ public class MainNavigationDrawer extends CoreFunctions implements NavigationVie
         } else if (id == R.id.nav_map) {
             item.setChecked(true);
             startActivity(new Intent(this, LocalizerActivity.class));
-        } else if (id == R.id.nav_setStore) {
-            getUserInputString(new UserStringCallback() {
-                @Override
-                public void onCallback(String value) {
-                    selectedStore = value;
-                }
-            }, MainNavigationDrawer.this, "Please input the Collection/Store you would like to use.\n " +
-                    "Note: This input likely will not persist across activities.");
+        } else if (id == R.id.scanner_link) {
+            item.setChecked(true);
+            startActivity(new Intent(this, ScannerActivity.class));
         }
         return true;
     }

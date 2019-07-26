@@ -48,14 +48,12 @@ import java.util.UUID;
 
 public class CalibrationActivity extends MainNavigationDrawer {
     // -- View Variables
-    FirebaseStorage storage;
-    StorageReference storageReference;
+
     ModifiedImageView mapView; // Map
     boolean keyboardOpen = false; // To hide and show keyboard // For revealing overlapping dropdown menu
     boolean dropdownStoreOpen = false; // To hide and show storeInput dropdown(For UI purposes)
     private final static String CALIBRATION_PIN_NAME = "Calibration Pin"; // For naming the pin to be stored together with location
     private String currentLocation;
-    private Map<String, Object> registeredAreaMaps = new HashMap<String, Object>();
     private Button btnChoose, btnUpload;
     private Uri filePath;
     private final int PICK_IMAGE_REQUEST = 71;
@@ -67,8 +65,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
 
         refreshMapList();
         // -- Map Codes
-        storage = FirebaseStorage.getInstance();
-        storageReference = storage.getReference();
+
         mapView = (ModifiedImageView) findViewById(R.id.calibration_map);
         mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
         // For placing pin (singular)
@@ -246,7 +243,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //Toast.makeText(CalibrationActivity.this, inputAreaMap.getText().toString(), Toast.LENGTH_SHORT).show();
-                getImage(inputAreaMap.getText().toString());
+                getImage(CalibrationActivity.this, inputAreaMap.getText().toString(), mapView);
             }
         });
         // If Input Field for "AreaMap" is clicked again, hide the keyboard and show dropdown menu
@@ -319,56 +316,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
         }
     }
 
-    private void getImage(final String mapName) {
-        final ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle("Retrieving...");
-        progressDialog.show();
 
-        final StorageReference ref = storageReference.child("images/"+ mapName);
-        // Get the Source Dimensions First
-        db.document(PATH_TO_AREAMAPS_LIST).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-            @Override
-            public void onSuccess(DocumentSnapshot document) {
-                if (!document.exists()) {
-                    Log.d("LOGGED", "Calibration/getImage - Error accessing areaMapsList");
-                    return;
-                } else {
-                    Map<String, Object> mapList = new HashMap<String, Object>();
-                    mapList = document.getData();
-                    final Map<String, Long> sourceDimen = (HashMap<String, Long>) mapList.get(mapName);
-
-                    if (sourceDimen == null || sourceDimen.isEmpty()) {
-                        Log.d("LOGGED", "Calibration/getImage - NO DIMENSIONS FOUND");
-                        return;
-                    }
-
-                    // Get The Image and Resize it
-                    final long ONE_MEGABYTE = 1024 * 1024;
-                    ref.getBytes(ONE_MEGABYTE).addOnSuccessListener(new OnSuccessListener<byte[]>() {
-                        @Override
-                        public void onSuccess(byte[] bytes) {
-                            // Data for "images/island.jpg" is returns, use this as needed
-                            Bitmap retrievedImage = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                            Bitmap resizedImage = Bitmap.createScaledBitmap(retrievedImage,
-                                    sourceDimen.get("width").intValue(),sourceDimen.get("height").intValue(), true);
-                            mapView.setImage(ImageSource.bitmap(resizedImage));
-                            progressDialog.dismiss();
-                            Toast.makeText(CalibrationActivity.this, "Retrieved", Toast.LENGTH_SHORT).show();
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(CalibrationActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    ;
-                }
-            }
-        });
-
-
-    }
     private void uploadImage() {
         if(filePath != null)
         {
@@ -479,6 +427,10 @@ public class CalibrationActivity extends MainNavigationDrawer {
     // Register a location anchor
     public void registerLocation(final Context context, final String areaMap, final String locationInput, final String collectionNamePath, final PointF coordinatesInput) {
         // Input-Conditionals Check
+        if (!registeredAreaMaps.containsKey(areaMap)) {
+            Toast.makeText(CalibrationActivity.this, "Area Map not registered.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (!collectionNamePath.equals("") && !locationInput.equals("") && !collectionNamePath.equals("Access Points") && !collectionNamePath.equals("Miscellaneous")) { // Access Points is protected
             // Continue
             // Check if location is already registered

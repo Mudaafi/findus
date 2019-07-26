@@ -1,26 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <group android:enabled="false">
+    <item
+        android:id = "@+id/makeshift_header"
+        android:title="@string/tester"
+        />
+    </group>
     <group android:checkableBehavior="single">
 
-        <item
-            android:id="@+id/calibration_link"
-            android:icon="@drawable/pin_settings"
-            android:title="@string/menu_calibration"
-            />
         <item
             android:id="@+id/nav_map"
             android:icon="@drawable/ic_location"
             android:title="@string/menu_home"
             />
 
-    </group>
-    <group>
         <item
-            android:id="@+id/nav_setStore"
-            android:title="Set Store"
-            android:icon="@drawable/ic_launcher_background"
-            android:tooltipText="May or may not be bugged. Probably resets to Testing if you switch screens"
+            android:id="@+id/calibration_link"
+            android:icon="@drawable/cool_settings"
+            android:title="@string/menu_calibration"
+            />
+
+        <item
+            android:id="@+id/scanner_link"
+            android:title="@string/menu_scanner"
+            android:icon="@drawable/wifi_scan"
             />
     </group>
 </menu>
