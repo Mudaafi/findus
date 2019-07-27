@@ -124,6 +124,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
                                             }
                                         }
                                         if (finalCoord != null) {
+                                            Toast.makeText(CalibrationActivity.this, "Location: " + finalLocation, Toast.LENGTH_SHORT).show();
                                             mapView.removePins();
                                             mapView.setPin(CALIBRATION_PIN_NAME, finalCoord);
                                             currentLocation = finalLocation;

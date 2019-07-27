@@ -124,6 +124,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
                                         }
                                     }
                                     if (finalCoord != null) {
+                                        Toast.makeText(LocalizerActivity.this, "Location: " + finalLocation, Toast.LENGTH_SHORT).show();
                                         mapView.removePins();
                                         mapView.setPin(SELECTED_LOCATION_NAME, finalCoord);
                                     }
@@ -154,7 +155,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
                     queryFirestore(new UserStringCallback() {
                         @Override
                         public void onCallback(String currLocation) {
-                            if (currLocation != null) {
+                            if (currLocation != null && !currLocation.equals("No Viable Location Found")) {
                                 Log.d("LOGGED", "@/Localizer/: " + currLocation);
                                 displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
                             } else {
