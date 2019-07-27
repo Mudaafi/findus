@@ -62,8 +62,8 @@ public class CalibrationActivity extends MainNavigationDrawer {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.calibration_main);
-
-        refreshMapList();
+        final AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
+        refreshMapList(inputAreaMap);
         // -- Map Codes
 
         mapView = (ModifiedImageView) findViewById(R.id.calibration_map);
@@ -160,7 +160,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
         final Button mainButton = findViewById(R.id.registerButton);
         ConstraintLayout currView = findViewById(R.id.calibration_main);
         final EditText inputLocation = findViewById(R.id.inputLocation);
-        final AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
+        //final AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);//declared earlier
         final EditText inputCoords = findViewById(R.id.inputCoord);
 
         btnChoose.setOnClickListener(new View.OnClickListener() {
@@ -189,20 +189,20 @@ public class CalibrationActivity extends MainNavigationDrawer {
                 final PointF coordinatesInput = mapView.getPinCoords(CALIBRATION_PIN_NAME);
 
                 if (locationName.equals("")|| !locationName.matches(".*[a-zA-Z]+.*") ||
-                        locationName.matches(".*/+.*") || locationName.matches(".*.+.*")) {
+                        locationName.contains(".") || locationName.contains("/")) {
                     Toast.makeText(CalibrationActivity.this, "Improper name for location detected", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 if (areaMap.equals("")|| !areaMap.matches(".*[a-zA-Z]+.*") ||
-                        areaMap.matches(".*/+.*") || areaMap.matches(".*.+.*")) {
+                        areaMap.contains(".") || areaMap.contains("/")) {
                     Toast.makeText(CalibrationActivity.this, "Improper name for areaMap detected", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 if (toggleButton.isChecked()) {
                     registerLocation(CalibrationActivity.this, areaMap, locationName, collectionNamePath, coordinatesInput);
-                    refreshMapList();
+                    refreshMapList(inputAreaMap);
                 } else {
                     redefineLocation(currentLocation, locationName, areaMap, collectionNamePath, coordinatesInput);
                     currentLocation = locationName;
@@ -320,11 +320,11 @@ public class CalibrationActivity extends MainNavigationDrawer {
     private void uploadImage() {
         if(filePath != null)
         {
-            AutoCompleteTextView areaMapInput = findViewById(R.id.inputAreaMap);
+            final AutoCompleteTextView areaMapInput = findViewById(R.id.inputAreaMap);
             final String mapName = areaMapInput.getText().toString();
             // Validate input to contain at least one alphabet
             if (mapName.equals("")|| !mapName.matches(".*[a-zA-Z]+.*") ||
-                    mapName.matches(".*/+.*") || mapName.matches(".*.+.*")) {
+                    mapName.contains(".") || mapName.contains("/")) {
                 Toast.makeText(CalibrationActivity.this, "Improper name detected", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -343,7 +343,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
                             sourceDimen.put("height", (long) mapView.getSHeight());
                             sourceDimen.put("width", (long) mapView.getSWidth());
                             db.document(PATH_TO_AREAMAPS_LIST).update(mapName, sourceDimen);
-                            refreshMapList();
+                            refreshMapList(areaMapInput);
                         }
                     })
                     .addOnFailureListener(new OnFailureListener() {
@@ -366,28 +366,6 @@ public class CalibrationActivity extends MainNavigationDrawer {
         }
     }
     // -- Other Functions (GUI Related)
-    // Access Firestore and pull a list of Collection names from a document
-    private void refreshMapList() {
-        // db refers to Firestore Database which is declared in CoreFunctions.java
-        Task<DocumentSnapshot> task = db.document(PATH_TO_AREAMAPS_LIST).get();
-        task.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    ArrayList<String> firestoreMaps = new ArrayList<String>();
-                    registeredAreaMaps = task.getResult().getData();
-                    for (String id : registeredAreaMaps.keySet()) {
-                        firestoreMaps.add(id);
-                    }
-                    AutoCompleteTextView inputAreaMap = findViewById(R.id.inputAreaMap);
-                    inputAreaMap.setThreshold(1);
-                    ArrayAdapter<String> adaptedArray = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, firestoreMaps);
-                    inputAreaMap.setAdapter(adaptedArray);
-                    Log.d("LOGGED: ", "List of AreaMaps Loaded");
-                }
-            }
-        });
-    }
 
     // Function to hide keyboard (do you know how dumb this is)
     public void hideKeyboard(View view) {

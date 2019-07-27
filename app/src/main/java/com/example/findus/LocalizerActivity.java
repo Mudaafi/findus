@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -39,6 +40,8 @@ public class LocalizerActivity extends MainNavigationDrawer {
         }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.localizer_main);
+
+        final AutoCompleteTextView areaMap = findViewById(R.id.localizer_areamap_input);
         View overlay = findViewById(R.id.localizer_map);
         overlay.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -82,6 +85,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
                 mapView.setOnTouchListener(new View.OnTouchListener() {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
+                        areaMap.setVisibility(View.GONE);
                         if (isTap(event)) {
                             // start_x and start_y are class variables declared in CoreFunctions
                             final PointF source_coord = mapView.viewToSourceCoord((float) start_x, (float) start_y);
@@ -134,27 +138,32 @@ public class LocalizerActivity extends MainNavigationDrawer {
         // -- GUI CODES
 
         Button mainButton = findViewById(R.id.localizerButton);
-        mainButton.setOnTouchListener(new View.OnTouchListener() {
+        mainButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if (isTap(event)) {
-                    if (systemsCheck(LocalizerActivity.this)) {
-                        queryFirestore(new UserStringCallback() {
-                            @Override
-                            public void onCallback(String currLocation) {
-                                if (currLocation != null) {
-                                    Log.d("LOGGED", "@/Localizer/: " + currLocation);
-                                    displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
-                                } else {
-                                    Log.d("LOGGED", "No corresponding location found2");
-                                }
+            public void onClick(View v) {
+                if (systemsCheck(LocalizerActivity.this)) {
+                    queryFirestore(new UserStringCallback() {
+                        @Override
+                        public void onCallback(String currLocation) {
+                            if (currLocation != null) {
+                                Log.d("LOGGED", "@/Localizer/: " + currLocation);
+                                displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
+                            } else {
+                                Log.d("LOGGED", "No corresponding location found2");
                             }
-                        }, selectedStore);
-                    }
+                        }
+                    }, selectedStore);
                 }
+            }
+        });
+        mainButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                areaMap.setVisibility(View.VISIBLE);
                 return false;
             }
         });
+
     }
 
     public void displayLocation(Integer idImage, final String currLocation, String areaMap, final String collectionNamePath) {

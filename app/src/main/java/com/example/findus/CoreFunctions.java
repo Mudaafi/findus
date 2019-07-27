@@ -566,6 +566,28 @@ public class CoreFunctions extends AppCompatActivity {
         });
     }
 
+    // Access Firestore and pull a list of Collection names from a document
+    public void refreshMapList(final AutoCompleteTextView inputAreaMap) {
+        // db refers to Firestore Database which is declared in CoreFunctions.java
+        Task<DocumentSnapshot> task = db.document(PATH_TO_AREAMAPS_LIST).get();
+        task.addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    ArrayList<String> firestoreMaps = new ArrayList<String>();
+                    registeredAreaMaps = task.getResult().getData();
+                    for (String id : registeredAreaMaps.keySet()) {
+                        firestoreMaps.add(id);
+                    }
+                    inputAreaMap.setThreshold(1);
+                    ArrayAdapter<String> adaptedArray = new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_spinner_dropdown_item, firestoreMaps);
+                    inputAreaMap.setAdapter(adaptedArray);
+                    Log.d("LOGGED: ", "List of AreaMaps Loaded");
+                }
+            }
+        });
+    }
+
     // get AreaMap from a Location Anchor
     /*
     public void yolo() {
