@@ -22,26 +22,28 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.example.findus.ModifiedImageView
-        android:layout_height="match_parent"
-        android:layout_width="match_parent"
         android:id="@+id/localizer_map"
-        >
-    </com.example.findus.ModifiedImageView>
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:layout_editor_absoluteX="73dp"
+        tools:layout_editor_absoluteY="8dp"></com.example.findus.ModifiedImageView>
 
     <AutoCompleteTextView
         android:id="@+id/localizer_areamap_input"
-        android:layout_width="300sp"
+        android:layout_width="350sp"
         android:layout_height="70sp"
         android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:gravity="center"
-        android:textSize="25sp"
-        android:background="@drawable/bg_grey"
         android:alpha="0.85"
+        android:background="@drawable/bg_grey"
 
+        android:gravity="center"
+        android:inputType="textAutoComplete"
         android:text="COM 1 Level 2, NUS"
-        app:layout_constraintEnd_toStartOf="@+id/localizerButton"
+        android:textSize="25sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/localizerButton" />
+        app:layout_constraintTop_toTopOf="@+id/localizer_map" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

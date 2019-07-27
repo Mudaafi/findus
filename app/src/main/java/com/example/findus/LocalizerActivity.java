@@ -1,5 +1,6 @@
 package com.example.findus;
 
+import android.content.Context;
 import android.graphics.PointF;
 import android.os.Build;
 import android.os.Bundle;
@@ -8,6 +9,8 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
@@ -29,6 +32,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
     final static public String SELECTED_LOCATION_NAME = "SELECTED LOCATION";
     final static public String SELECTED_MAP = "COM 1 Level 2, NUS";
     final static public String CURRENT_LOCATION_PIN_NAME = "Current Location";
+    boolean keyboardOpen = false;
 
     // -- OnCreate (i.e. main)
     @Override
@@ -49,7 +53,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
 
         Log.d("LOGGED", selectedStore);
         // TO-DO
-        //refreshStoreList();
+        refreshMapList(areaMap);
 
         // -- Map Codes
         mapView = (ModifiedImageView) findViewById(R.id.localizer_map);
@@ -58,7 +62,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
             queryFirestore(new UserStringCallback() {
                 @Override
                 public void onCallback(String currLocation) {
-                    if (currLocation != null) {
+                    if (currLocation != null && !currLocation.equals("No Viable Location Found")) {
                         Log.d("LOGGED", "Localizer/OnCreate: " + currLocation);
                         //displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
                     } else {
@@ -86,6 +90,11 @@ public class LocalizerActivity extends MainNavigationDrawer {
                     @Override
                     public boolean onTouch(View v, MotionEvent event) {
                         areaMap.setVisibility(View.GONE);
+                        hideKeyboard(v);
+                        keyboardOpen = false;
+                        if (areaMap.isFocused()) {
+                            areaMap.clearFocus();
+                        }
                         if (isTap(event)) {
                             // start_x and start_y are class variables declared in CoreFunctions
                             final PointF source_coord = mapView.viewToSourceCoord((float) start_x, (float) start_y);
@@ -150,6 +159,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
                                 displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
                             } else {
                                 Log.d("LOGGED", "No corresponding location found2");
+                                Toast.makeText(LocalizerActivity.this, "No corresponding location found", Toast.LENGTH_SHORT).show();
                             }
                         }
                     }, selectedStore);
@@ -163,6 +173,26 @@ public class LocalizerActivity extends MainNavigationDrawer {
                 return false;
             }
         });
+
+        areaMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                keyboardOpen = true;
+                areaMap.showDropDown();
+            }
+        });
+
+        // If an item is selected from the dropdown
+        areaMap.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //Toast.makeText(CalibrationActivity.this, inputAreaMap.getText().toString(), Toast.LENGTH_SHORT).show();
+                hideKeyboard(areaMap);
+                keyboardOpen = false;
+                getImage(LocalizerActivity.this, areaMap.getText().toString(), mapView);
+            }
+        });
+
 
     }
 
@@ -187,5 +217,13 @@ public class LocalizerActivity extends MainNavigationDrawer {
                 Log.d("LOGGED: ", "No corresponding location found1");
             }
         });
+    }
+    public void hideKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        //If no view currently has focus, escape?
+        if (view == null) {
+            return;
+        }
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 }
