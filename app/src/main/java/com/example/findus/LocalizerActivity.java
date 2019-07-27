@@ -61,11 +61,12 @@ public class LocalizerActivity extends MainNavigationDrawer {
                     } else {
                         Log.d("LOGGED", "No Matching Area Map Found");
                         Toast.makeText(LocalizerActivity.this, "No Matching Area Map Found. Sorry", Toast.LENGTH_SHORT).show();
-                        mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
+                       // mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
                     }
                 }
             }, selectedStore);
         }
+        mapView.setImage(ImageSource.resource(R.drawable.floorplan_com1_l2_ver1));
         Log.d("LOGGED", "getScale() / maxScale: " + String.valueOf(mapView.getScale()) + " / " + String.valueOf(mapView.getMaxScale()));
         // For placing pin (singular)
         mapView.setOnImageEventListener(new ModifiedImageView.OnImageEventListener() {

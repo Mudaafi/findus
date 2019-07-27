@@ -567,7 +567,10 @@ public class CoreFunctions extends AppCompatActivity {
     }
 
     // get AreaMap from a Location Anchor
-
+    /*
+    public void yolo() {
+        db.collection("Access Points").whereEqualTo("cd", 3).whereEqualTo()
+    }*/
 
     // -- Code for Initializations
 
