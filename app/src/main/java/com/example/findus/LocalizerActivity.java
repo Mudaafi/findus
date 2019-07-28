@@ -30,7 +30,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
     // -- View Variables
     ModifiedImageView mapView;
     final static public String SELECTED_LOCATION_NAME = "SELECTED LOCATION";
-    final static public String SELECTED_MAP = "COM 1 Level 2, NUS";
+    public String SELECTED_MAP = "COM 1 Level 2, NUS";
     final static public String CURRENT_LOCATION_PIN_NAME = "Current Location";
     boolean keyboardOpen = false;
 
@@ -64,6 +64,7 @@ public class LocalizerActivity extends MainNavigationDrawer {
                 public void onCallback(String currLocation) {
                     if (currLocation != null && !currLocation.equals("No Viable Location Found")) {
                         Log.d("LOGGED", "Localizer/OnCreate: " + currLocation);
+                        // TODO: Figure out how to get an AreaMap from a Location Anchor Name
                         //displayLocation(R.id.localizer_map, currLocation, SELECTED_MAP, selectedStore);
                     } else {
                         Log.d("LOGGED", "No Matching Area Map Found");
@@ -105,6 +106,10 @@ public class LocalizerActivity extends MainNavigationDrawer {
                             db.collection(PATH_TO_LOCATION_LISTS).document(areaMap).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                 @Override
                                 public void onSuccess(DocumentSnapshot document) {
+                                    if (!document.exists()) {
+                                        Toast.makeText(LocalizerActivity.this, "This map has no registered Location Anchors.", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
                                     Map<String, Object> firestoreCoordMap = (HashMap<String, Object>) document.getData().get(inputStore);
                                     Map<String, PointF> convertedCoordMap = firestoreMapToCoordMap(firestoreCoordMap);
 
@@ -190,6 +195,8 @@ public class LocalizerActivity extends MainNavigationDrawer {
                 //Toast.makeText(CalibrationActivity.this, inputAreaMap.getText().toString(), Toast.LENGTH_SHORT).show();
                 hideKeyboard(areaMap);
                 keyboardOpen = false;
+                SELECTED_MAP = areaMap.getText().toString();
+                mapView.removePins();
                 getImage(LocalizerActivity.this, areaMap.getText().toString(), mapView);
             }
         });

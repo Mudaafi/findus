@@ -105,6 +105,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
                                 db.collection(PATH_TO_LOCATION_LISTS).document(areaMap).get().addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                                     @Override
                                     public void onSuccess(DocumentSnapshot document) {
+                                        if (!document.exists()) {return;}
                                         Map<String, Object> firestoreCoordMap = (HashMap<String, Object>) document.getData().get(collectionNamePath);
                                         Map<String, PointF> convertedCoordMap = firestoreMapToCoordMap(firestoreCoordMap);
 
