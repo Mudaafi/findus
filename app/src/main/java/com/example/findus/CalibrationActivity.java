@@ -206,6 +206,9 @@ public class CalibrationActivity extends MainNavigationDrawer {
                     registerLocation(CalibrationActivity.this, areaMap, locationName, collectionNamePath, coordinatesInput);
                     refreshMapList(inputAreaMap);
                 } else {
+                    if (currentLocation == null) {
+                        Toast.makeText(CalibrationActivity.this, "No Location Selected", Toast.LENGTH_SHORT).show();
+                        return;}
                     redefineLocation(currentLocation, locationName, areaMap, collectionNamePath, coordinatesInput);
                     currentLocation = locationName;
                 }
@@ -411,7 +414,7 @@ public class CalibrationActivity extends MainNavigationDrawer {
             Toast.makeText(CalibrationActivity.this, "Area Map not registered.", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (!collectionNamePath.equals("") && !locationInput.equals("") && !collectionNamePath.equals("Access Points") && !collectionNamePath.equals("Miscellaneous")) { // Access Points is protected
+        if (!collectionNamePath.equals("") && !locationInput.equals("") && !collectionNamePath.equals("Miscellaneous")) {
             // Continue
             // Check if location is already registered
             db.collection(PATH_TO_LOCATION_LISTS).document(areaMap).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {

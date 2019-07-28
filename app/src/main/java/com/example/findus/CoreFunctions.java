@@ -345,7 +345,7 @@ public class CoreFunctions extends AppCompatActivity {
 
     public void redefineLocation(final String nameFrom, final String nameTo, final String areaMap, final String storeInput, @Nullable final PointF coordinatesTo) {
         //TO-CHECK
-        if (storeInput.equals("") || nameTo.equals("")) {return;}
+        if (storeInput.equals("") || nameTo.equals("") || nameTo.equals(null) || storeInput.equals(null) || nameFrom.equals(null)) {return;}
         // Checks if a Location is registered
         final DocumentReference specificLocationList = db.collection(PATH_TO_LOCATION_LISTS).document(areaMap);
         specificLocationList.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -364,7 +364,7 @@ public class CoreFunctions extends AppCompatActivity {
                         if (!nameFrom.equals(nameTo)) {
                             //perform name change
                             // For Access Points
-                            db.collection(storeInput).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                            db.collection(storeInput).whereLessThan(MAP_NAME_IN_FS_DOC + "." + nameFrom, 69).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
                                 @Override
                                 public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                                     for (DocumentSnapshot document : queryDocumentSnapshots) {
@@ -595,6 +595,23 @@ public class CoreFunctions extends AppCompatActivity {
     }*/
 
     // -- Code for Initializations
+
+    public void removeLocationFromAcessPoints() {
+        //perform name change
+        // For Access Points
+        final String storex = "Access Points";
+        final String namex = "Stair 3 toilet";
+        Log.d("LOGGED", "Initializing Code 'RemoveLocationFromAccessPoint'");
+        db.collection(storex).whereEqualTo(MAP_NAME_IN_FS_DOC + "." + namex, null).get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                for (DocumentSnapshot document : queryDocumentSnapshots) {
+                    Log.d("LOGGED", "location deleted at document: " + document.getId());
+                    db.collection(storex).document(document.getId()).update(MAP_NAME_IN_FS_DOC + "." + namex, FieldValue.delete());
+                }
+            }
+        });
+    }
 
     public void initalizeLocationsMaps() {
         Log.d("LOGGED", "@/CoreFunctions/initializeLocations/: Initializing code");
