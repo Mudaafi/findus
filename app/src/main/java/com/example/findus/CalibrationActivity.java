@@ -34,6 +34,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -337,35 +338,41 @@ public class CalibrationActivity extends MainNavigationDrawer {
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
             StorageReference ref = storageReference.child("images/"+ mapName);
-            ref.putFile(filePath)
-                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            progressDialog.dismiss();
-                            Toast.makeText(CalibrationActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
-                            // Adding to database Miscellaneous Page
-                            Map<String, Long> sourceDimen = new HashMap<String, Long>();
-                            sourceDimen.put("height", (long) mapView.getSHeight());
-                            sourceDimen.put("width", (long) mapView.getSWidth());
-                            db.document(PATH_TO_AREAMAPS_LIST).update(mapName, sourceDimen);
-                            refreshMapList(areaMapInput);
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(CalibrationActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                            double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
-                                    .getTotalByteCount());
-                            progressDialog.setMessage("Uploaded "+(int)progress+"%");
-                        }
-                    });
+            ref.putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                    progressDialog.dismiss();
+                    Toast.makeText(CalibrationActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                    // Adding to database Miscellaneous Page
+                    Map<String, Long> sourceDimen = new HashMap<String, Long>();
+                    sourceDimen.put("height", (long) mapView.getSHeight());
+                    sourceDimen.put("width", (long) mapView.getSWidth());
+                    db.document(PATH_TO_AREAMAPS_LIST).update(mapName, sourceDimen);
+                    refreshMapList(areaMapInput);
+                }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(CalibrationActivity.this, "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                        double progress = (100.0*taskSnapshot.getBytesTransferred()/taskSnapshot
+                                .getTotalByteCount());
+                        progressDialog.setMessage("Uploaded "+(int)progress+"%");
+                    }
+                });
+
+            Map<String, PointF> initializerHolder = new HashMap<String, PointF>();
+            initializerHolder.put("Initialized with Code", new PointF(6, 9));
+            db.collection(PATH_TO_LOCATION_LISTS).document(mapName).set(initializerHolder, SetOptions.merge()).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d("LOGGED", "@/Calibration/uploadImage/: New Document Created: " + mapName);
+                }
+            });
         } else {
             Toast.makeText(CalibrationActivity.this, "No Image Detected", Toast.LENGTH_SHORT).show();
         }
@@ -434,7 +441,10 @@ public class CalibrationActivity extends MainNavigationDrawer {
                                 }
                             }
                         }
+                    } else { // LocationList doesn't exist
+                        Log.d("LOGGED", "Calibration/registerLocation - Document under Location List doesn't exist.");
                     }
+
                     // anchorExists = false means either the LocationList doesn't exist or the location was not stored before
                     if (coordinatesInput == null || anchorExists) {
                         // setting te warning msg
